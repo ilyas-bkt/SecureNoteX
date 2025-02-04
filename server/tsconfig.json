@@ -1,0 +1,49 @@
+{
+  "compilerOptions": {
+    // Type Checking
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "useUnknownInCatchVariables": true,
+    "alwaysStrict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    
+    // Modules
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    
+    // Emit
+    "noEmitOnError": true,
+    "preserveConstEnums": true,
+    "skipLibCheck": true,
+    
+    // JavaScript Support
+    "allowJs": false,
+    "checkJs": false,
+    
+    // Interop Constraints
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    
+    // Language and Environment
+    "target": "ESNext",
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    
+    // Projects
+    "composite": false,
+    "incremental": true,
+    
+    // Completeness
+    "skipDefaultLibCheck": true
+  },
+  "include": ["./**/*"],
+  "exclude": ["node_modules", "dist"],
+}
