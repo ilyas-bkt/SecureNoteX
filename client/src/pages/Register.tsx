@@ -96,7 +96,7 @@ export default function Register() {
           id="sign-in-button"
           type="button"
           className="bg-red-500 rounded-2xl text-white text-2xl pt-1 pb-1 mt-3 hover:bg-red-900 active:bg-black"
-          onClick={() => {
+          onClick={async () => {
             if (password.length === 0) {
               setPasswordError(true);
             }

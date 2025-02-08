@@ -1,12 +1,14 @@
 import express from "express";
 import dotenv from "dotenv";
 import { PrismaClient } from "@prisma/client";
-import { exit } from "process";
+import { exit, off } from "process";
 import helmet from "helmet";
 import path from "path";
 import https from "https";
 import http from "http";
 import fs from "fs";
+import argon2 from "argon2";
+import { log } from "console";
 
 //=============== CONSTANTS ==========//
 const HTTP_PORT = Number(process.env["HTTP_PORT"]);
@@ -39,9 +41,17 @@ interface UserTypes {
 
 // ================ CONFIG ============== //
 server.use((req, res, next) => {
-  res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
-  res.setHeader("Origin-Agent-Cluster", "?1");
-  res.setHeader("Cross-Origin-Resource-Policy", "same-origin");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "access-control-allow-origin, content-type, authorization"
+  );
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+
+  if (req.method == "OPTIONS") {
+    res.status(200).send();
+  }
+
   next();
 });
 
@@ -60,11 +70,9 @@ server.use((req, res, next) => {
 server.use(express.static(path.join(PUBLIC_DIR)));
 
 // ============== SSL VERIFICATION ===================== //
-server.get("/.well-known/acme-challenge/:filename", (req, res) => {
-  res.sendFile(
-    path.join(PUBLIC_DIR, req.params.filename)
-  );
-});
+/*server.get("/.well-known/acme-challenge/:filename", (req, res) => {
+  res.sendFile(path.join(PUBLIC_DIR, req.params.filename));
+});*/
 
 server.get("*", (req, res) => {
   res.status(200).sendFile(path.join(PUBLIC_DIR, "index.html"));
@@ -77,7 +85,7 @@ server.post("/api/register", async (req, res, next) => {
         firstName: req.body.firstName,
         lastName: req.body.lastName,
         username: req.body.username,
-        password: req.body.password,
+        password: await argon2.hash(req.body.password),
       },
     })
     .then((data) => {
@@ -99,19 +107,19 @@ server.post("/api/login", async (req, res) => {
         username: req.body.username,
       },
     })
-    .then((data) => {
-      if (data?.password === req.body.password) {
+    .then(async (data) => {
+      if (await argon2.verify(data?.password as string, req.body.password)) {
         res.status(202).send();
         console.log(`[DB] User ${data?.username} is successfully connected`);
       } else {
         res.status(400).send();
         console.log(
-          `[DB] No username (${req.body.username}) in database or wrong password`
+          `[DB] Wrong password for username => (${req.body.username})`
         );
       }
     })
     .catch(() => {
-      console.log(`[DB] Cannot access database`);
+      console.log(`[DB] No username (${req.body.username}) in database`);
       res.status(400).send();
     });
 });
