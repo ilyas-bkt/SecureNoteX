@@ -4,9 +4,11 @@ import { Notification } from "../components/Notification";
 import { Navigate, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 
+const API_SERVER_URL = String(import.meta.env["VITE_API_SERVER"]);
+
 export default function Register() {
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
+  const [firstname, setFirstName] = useState("");
+  const [lastname, setLastName] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
@@ -26,11 +28,11 @@ export default function Register() {
 
   useEffect(() => {
     setFirstNameError(false);
-  }, [firstName]);
+  }, [firstname]);
 
   useEffect(() => {
     setLastNameError(false);
-  }, [lastName]);
+  }, [lastname]);
 
   useEffect(() => {
     setPasswordError(false);
@@ -57,7 +59,7 @@ export default function Register() {
           fun={(e: React.ChangeEvent<HTMLInputElement>) => {
             setFirstName(e.target.value);
           }}
-          value={firstName}
+          value={firstname}
           error={firstNameError}
         />
         <SingleForm
@@ -67,7 +69,7 @@ export default function Register() {
           fun={(e: React.ChangeEvent<HTMLInputElement>) => {
             setLastName(e.target.value);
           }}
-          value={lastName}
+          value={lastname}
           error={lastNameError}
         />
         <SingleForm
@@ -96,28 +98,28 @@ export default function Register() {
           id="sign-in-button"
           type="button"
           className="bg-red-500 rounded-2xl text-white text-2xl pt-1 pb-1 mt-3 hover:bg-red-900 active:bg-black"
-          onClick={async () => {
+          onClick={() => {
             if (password.length === 0) {
               setPasswordError(true);
             }
-            if (firstName.length === 0) {
+            if (firstname.length === 0) {
               setFirstNameError(true);
             }
-            if (lastName.length === 0) {
+            if (lastname.length === 0) {
               setLastNameError(true);
             }
             if (username.length === 0) {
               setUsernameError(true);
             }
-            if (firstName && lastName && username && password) {
-              fetch("https://xakodelako.ddns.net:443/api/register", {
+            if (firstname && lastname && username && password) {
+              fetch(`${API_SERVER_URL}/api/register`, {
                 method: "POST",
                 headers: {
                   "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                  firstName: firstName,
-                  lastName: lastName,
+                  firstname: firstname,
+                  lastname: lastname,
                   username: username,
                   password: password,
                 }),

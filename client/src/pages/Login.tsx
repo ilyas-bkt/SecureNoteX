@@ -4,6 +4,8 @@ import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Notification } from "../components/Notification";
 
+const API_SERVER_URL = String(import.meta.env["VITE_API_SERVER"]);
+
 export default function Login() {
   const [username, setUsername] = useState(String);
   const [password, setPassword] = useState(String);
@@ -67,14 +69,17 @@ export default function Login() {
           id="sign-in-button"
           type="button"
           className="bg-red-500 rounded-2xl text-white text-2xl pt-1 pb-1 mt-3 hover:bg-red-900 active:bg-black"
-          onClick={() => {
-            if (password.length === 0) {
+          onClick={async () => {
+            setUsernameError(false);
+            setUsernameWarn("");
+            setPasswordError(false);
+            setPasswordWarn("");
+
+            if (!password.length || !username.length) {
               setPasswordError(true);
-            }
-            if (username.length === 0) {
               setUsernameError(true);
             } else if (!usernameError && !passwordError) {
-              fetch("https://xakodelako.ddns.net:443/api/login", {
+              const response = await fetch(`${API_SERVER_URL}/api/login`, {
                 method: "POST",
                 headers: {
                   "Content-Type": "application/json",
@@ -83,18 +88,18 @@ export default function Login() {
                   username: username,
                   password: password,
                 }),
-              })
-                .then((response) => {
-                  if (response.status === 400) {
-                    setUsernameWarn("Incorrect");
-                    setPasswordWarn("Incorrect");
-                  } else if (response.status === 202) {
-                    setShowNotification(true);
-                  }
-                })
-                .catch((error) => {
-                  console.log("Failed to fetch :", error);
-                });
+              });
+
+              switch (response.status) {
+                case 400:
+                  setUsernameWarn("Incorrect");
+                  setPasswordWarn("Incorrect");
+                  return;
+                case 202:
+                  setShowNotification(true);
+                  console.log(response);
+                  break;
+              }
             }
           }}
         >

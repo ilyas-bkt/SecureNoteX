@@ -15,9 +15,16 @@ datasource db {
 }
 
 model User {
-  id String @unique @id @default(uuid())
-  firstName String
-  lastName String
-  username String @unique
-  password String
+  id        String    @id @unique @default(uuid())
+  firstname String
+  lastname  String
+  username  String    @unique
+  password  String
+  sessions  Session[]
+}
+
+model Session {
+  sessionId String @id @unique @default(uuid())
+  userId    String
+  user      User   @relation(fields: [userId], references: [id])
 }
