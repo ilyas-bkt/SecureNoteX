@@ -1,8 +1,9 @@
 import { SingleForm } from "../components/SingleForm";
 import { Header } from "../components/Header";
 import { Notification } from "../components/Notification";
-import { Navigate, Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { IsSessionValid } from "../tools/IsSessionValid";
 
 const API_SERVER_URL = String(import.meta.env["VITE_API_SERVER"]);
 
@@ -19,7 +20,13 @@ export default function Register() {
 
   const [usernameWarn, setUsernameWarn] = useState(String);
   const [showNotification, setShowNotification] = useState(Boolean);
-  const [isRegistered, setIsRegistered] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+      IsSessionValid().then((isValid) => {
+        if (isValid) navigate("/dashboard");
+      });
+    }, [navigate]);
 
   useEffect(() => {
     setUsernameWarn("");
@@ -44,7 +51,11 @@ export default function Register() {
       className="flex flex-row justify-center items-center h-screen w-screen"
     >
       <Header />
-      <Notification message="Account created!" show={showNotification} />
+      <Notification
+        message="Account created!"
+        color="green"
+        show={showNotification}
+      />
       <div
         id="left-container"
         className="flex flex-col border-solid border-2 border-r-0 p-6 h-[470px] w-[310px]"
@@ -130,7 +141,7 @@ export default function Register() {
                   else if (response.status === 201) {
                     setShowNotification(true);
                     setTimeout(() => {
-                      setIsRegistered(true);
+                      navigate("/login");
                     }, 1000);
                   }
                 })
@@ -162,7 +173,6 @@ export default function Register() {
           Login
         </Link>
       </div>
-      {isRegistered ? <Navigate to={"/login"} /> : <></>}
     </main>
   );
 }

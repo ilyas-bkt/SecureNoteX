@@ -79,8 +79,12 @@ server.post("/api/register", async (req, res) => {
       res.status(201).send();
       console.log(`[DB] New user created : ${JSON.stringify(data)}`);
     })
-    .catch((error) => {
-      console.log(`[DB] Failed to create a new user. Error: ${error}`);
+    .catch((error: string) => {
+      let message = error;
+      if (String(error).includes("Unique constraint")) {
+        message = "username already exists";
+      }
+      console.log(`[DB] Failed to create a new user : ${message}`);
       res.status(500).send();
     });
   return;
@@ -110,14 +114,6 @@ server.post("/api/login", async (req, res, next) => {
         );
 
         try {
-          await db.session.deleteMany({
-            where: {
-              expireAt: {
-                lt: new Date(),
-              },
-            },
-          });
-
           const sessionData = await db.session.create({
             data: {
               userId: userData?.id as string,
@@ -130,9 +126,10 @@ server.post("/api/login", async (req, res, next) => {
             `[DB] New session created : ${JSON.stringify(sessionData)}`
           );
         } catch (error) {
-          res.status(400).send();
           console.log(`[DB] Error creating session : ${error}`);
         }
+      } else {
+        res.status(400).send();
       }
     })
     .catch(() => {
@@ -140,6 +137,52 @@ server.post("/api/login", async (req, res, next) => {
       res.status(400).send();
       next();
     });
+});
+
+server.post("/api/logout", async (req, res) => {
+  try {
+    const status = await db.session.delete({
+      where: {
+        sessionId: req.body.sessionId,
+      },
+    });
+
+    res.status(200).send();
+    console.log(
+      `[DB] User session deleted successfully : ${req.body.sessionId}`
+    );
+  } catch (error) {
+    res.status(400).send();
+    console.log(`[DB] Error deleting session`);
+  }
+});
+
+server.post("/api/session", async (req, res) => {
+  try {
+    const sessionData = await db.session.findUnique({
+      where: {
+        sessionId: req.headers.authorization,
+      },
+    });
+
+    if (!sessionData) {
+      res.status(400).send();
+      return;
+    } else if (sessionData.expireAt < new Date()) {
+      res.status(400).send();
+      await db.session.delete({
+        where: {
+          sessionId: req.headers.authorization,
+        },
+      });
+      return;
+    }
+
+    res.status(200).send();
+  } catch (error) {
+    res.status(500).send();
+    console.log(`[DB] Error verifying session : ${error}`);
+  }
 });
 
 https

@@ -1,8 +1,9 @@
 import { SingleForm } from "../components/SingleForm";
 import { Header } from "../components/Header";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Notification } from "../components/Notification";
+import { IsSessionValid } from "../tools/IsSessionValid";
 
 const API_SERVER_URL = String(import.meta.env["VITE_API_SERVER"]);
 
@@ -16,7 +17,15 @@ export default function Login() {
   const [usernameWarn, setUsernameWarn] = useState(String);
   const [passwordWarn, setPasswordWarn] = useState(String);
 
-  const [showNotification, setShowNotification] = useState(Boolean);
+  const [notification, setNotifaction] = useState(
+    {} as {
+      message: string;
+      color: string;
+      show: boolean;
+    }
+  );
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     setUsernameError(false);
@@ -28,13 +37,37 @@ export default function Login() {
     setPasswordWarn("");
   }, [password]);
 
+  useEffect(() => {
+    IsSessionValid().then((isValid) => {
+      if (isValid) navigate("/dashboard");
+    });
+
+    const status = sessionStorage.getItem("status") as string;
+    if (status == "Disconnected successfully!")
+      setNotifaction({
+        message: "Disconnected successfully!",
+        color: "green",
+        show: true,
+      });
+    else if (status == "Session expired!")
+      setNotifaction({
+        message: "Session expired!",
+        color: "red",
+        show: true,
+      });
+  }, [navigate]);
+
   return (
     <main
       id="main-container"
       className="flex flex-row justify-center items-center h-screen w-screen"
     >
       <Header />
-      <Notification message="Logged In!" show={showNotification} />
+      <Notification
+        message={notification.message}
+        color={notification.color}
+        show={notification.show}
+      />
       <div
         id="left-container"
         className="flex flex-col border-solid border-2 border-r-0 p-6 h-[330px]"
@@ -90,17 +123,20 @@ export default function Login() {
                 }),
               });
 
-              if(!response.ok){
+              if (!response.ok) {
                 setUsernameWarn("Incorrect");
                 setPasswordWarn("Incorrect");
+                setNotifaction({
+                  message: "Failed to connect!",
+                  color: "red",
+                  show: true,
+                });
                 return;
               }
 
-              setShowNotification(true);
               const userData = await response.json();
-              sessionStorage.setItem("data", JSON.stringify(userData));
-
-              console.log(JSON.parse(sessionStorage.getItem("data") as string).sessionId);
+              localStorage.setItem("data", JSON.stringify(userData));
+              navigate("/dashboard");
             }
           }}
         >
