@@ -90,16 +90,17 @@ export default function Login() {
                 }),
               });
 
-              switch (response.status) {
-                case 400:
-                  setUsernameWarn("Incorrect");
-                  setPasswordWarn("Incorrect");
-                  return;
-                case 202:
-                  setShowNotification(true);
-                  console.log(response);
-                  break;
+              if(!response.ok){
+                setUsernameWarn("Incorrect");
+                setPasswordWarn("Incorrect");
+                return;
               }
+
+              setShowNotification(true);
+              const userData = await response.json();
+              sessionStorage.setItem("data", JSON.stringify(userData));
+
+              console.log(JSON.parse(sessionStorage.getItem("data") as string).sessionId);
             }
           }}
         >

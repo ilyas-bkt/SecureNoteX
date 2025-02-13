@@ -24,7 +24,8 @@ model User {
 }
 
 model Session {
-  sessionId String @id @unique @default(uuid())
+  sessionId String   @id @unique @default(uuid())
   userId    String
-  user      User   @relation(fields: [userId], references: [id])
+  expireAt  DateTime
+  user      User     @relation(fields: [userId], references: [id])
 }

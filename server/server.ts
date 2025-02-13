@@ -109,20 +109,30 @@ server.post("/api/login", async (req, res, next) => {
           `[DB] User ${userData?.username} is successfully connected`
         );
 
-        const sessionData = await db.session.create({
-          data: {
-            userId: userData?.id as string,
-            sessionId: sessionId as string,
-          },
-        });
-        console.log(
-          `[DB] New session created : ${JSON.stringify(sessionData)}`
-        );
-      } else {
-        res.status(400).send();
-        console.log(
-          `[DB] Wrong password for username => (${req.body.username})`
-        );
+        try {
+          await db.session.deleteMany({
+            where: {
+              expireAt: {
+                lt: new Date(),
+              },
+            },
+          });
+
+          const sessionData = await db.session.create({
+            data: {
+              userId: userData?.id as string,
+              sessionId: sessionId as string,
+              expireAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+            },
+          });
+
+          console.log(
+            `[DB] New session created : ${JSON.stringify(sessionData)}`
+          );
+        } catch (error) {
+          res.status(400).send();
+          console.log(`[DB] Error creating session : ${error}`);
+        }
       }
     })
     .catch(() => {
