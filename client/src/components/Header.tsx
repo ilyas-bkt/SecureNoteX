@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import logo from "../assets/logo.jpg";
+import { Disconnect } from "../tools/SessionManager";
 
 const API_SERVER_URL = String(import.meta.env["VITE_API_SERVER"]);
 
@@ -41,8 +42,7 @@ export const Header: React.FC<{
                   sessionId: sessionId,
                 }),
               });
-              localStorage.removeItem("data");
-              sessionStorage.setItem("status", "Disconnected successfully!");
+              Disconnect("Disconnected successfully!");
               navigate("/login");
             }}
           >

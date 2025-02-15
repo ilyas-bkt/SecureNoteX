@@ -1,6 +1,8 @@
 const API_SERVER_URL = String(import.meta.env["VITE_API_SERVER"]);
 
 export const IsSessionValid = async () => {
+  if (!localStorage.getItem("data")) return false;
+
   let sessionId;
   try {
     sessionId = JSON.parse(localStorage.getItem("data") as string)
@@ -22,4 +24,9 @@ export const IsSessionValid = async () => {
     return false;
   }
   return true;
+};
+
+export const Disconnect = (status: string) => {
+  localStorage.removeItem("data");
+  sessionStorage.setItem("status", status);
 };

@@ -141,7 +141,7 @@ server.post("/api/login", async (req, res, next) => {
 
 server.post("/api/logout", async (req, res) => {
   try {
-    const status = await db.session.delete({
+    await db.session.delete({
       where: {
         sessionId: req.body.sessionId,
       },
@@ -168,13 +168,16 @@ server.post("/api/session", async (req, res) => {
     if (!sessionData) {
       res.status(400).send();
       return;
-    } else if (sessionData.expireAt < new Date()) {
+    } else if (sessionData.expireAt < new Date(Date.now())) {
       res.status(400).send();
-      await db.session.delete({
+      const x = await db.session.deleteMany({
         where: {
-          sessionId: req.headers.authorization,
+          expireAt: {
+            lt: new Date(Date.now()),
+          },
         },
       });
+      console.log(x);
       return;
     }
 

@@ -6,13 +6,16 @@ export const Notification: React.FC<{
   show: boolean;
   color: string;
 }> = ({ message, show, color }) => {
-  const Color = color;
+  const colorClass: Record<string, string> = {
+    red: "border-red-500 text-red-500 text-red-600",
+    green: "border-green-500 text-green-500 text-green-600",
+  };
   return (
     <>
       {show ? (
         <div
           id="notification-container"
-          className={`absolute right-[0px] top-[90px] border-${Color}-500 border-2 border-l-[10px] text-${color}-500 flex flex-row items-center min-h-[60px] w-[230px] gap-2 p-[2px] text-${Color}-600`}
+          className={`${colorClass[color]} absolute right-[0px] top-[90px] border-2 border-l-[10px] flex flex-row items-center min-h-[60px] w-[230px] gap-2 p-[2px]`}
         >
           <img
             src={color == "red" ? RedCross : GreenCHeck}

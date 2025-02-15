@@ -3,7 +3,7 @@ import { Header } from "../components/Header";
 import { Notification } from "../components/Notification";
 import { useNavigate, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { IsSessionValid } from "../tools/IsSessionValid";
+import { IsSessionValid } from "../tools/SessionManager";
 
 const API_SERVER_URL = String(import.meta.env["VITE_API_SERVER"]);
 

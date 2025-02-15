@@ -3,7 +3,7 @@ import { Header } from "../components/Header";
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Notification } from "../components/Notification";
-import { IsSessionValid } from "../tools/IsSessionValid";
+import { IsSessionValid } from "../tools/SessionManager";
 
 const API_SERVER_URL = String(import.meta.env["VITE_API_SERVER"]);
 
@@ -19,8 +19,8 @@ export default function Login() {
 
   const [notification, setNotifaction] = useState(
     {} as {
-      message: string;
-      color: string;
+      message?: string;
+      color?: string;
       show: boolean;
     }
   );
@@ -43,29 +43,86 @@ export default function Login() {
     });
 
     const status = sessionStorage.getItem("status") as string;
-    if (status == "Disconnected successfully!")
+    switch (status) {
+      case "Disconnected successfully!":
+        setNotifaction({
+          message: "Disconnected successfully!",
+          color: "green",
+          show: true,
+        });
+        break;
+      case "Session expired!":
+        setNotifaction({
+          message: "Session expired!",
+          color: "red",
+          show: true,
+        });
+        break;
+      case "Timeout reached!":
+        setNotifaction({
+          message: "Timeout reached!",
+          color: "red",
+          show: true,
+        });
+        break;
+    }
+
+    setTimeout(() => {
+      sessionStorage.clear();
       setNotifaction({
-        message: "Disconnected successfully!",
-        color: "green",
-        show: true,
+        show: false,
       });
-    else if (status == "Session expired!")
-      setNotifaction({
-        message: "Session expired!",
-        color: "red",
-        show: true,
-      });
+    }, 4000);
   }, [navigate]);
+
+  const handleConnection = async () => {
+    setUsernameError(false);
+    setUsernameWarn("");
+    setPasswordError(false);
+    setPasswordWarn("");
+
+    if (!password.length || !username.length) {
+      setPasswordError(true);
+      setUsernameError(true);
+    } else if (!usernameError && !passwordError) {
+      const response = await fetch(`${API_SERVER_URL}/api/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: username,
+          password: password,
+        }),
+      });
+
+      if (!response.ok) {
+        setUsernameWarn("Incorrect");
+        setPasswordWarn("Incorrect");
+        setNotifaction({
+          message: "Failed to connect!",
+          color: "red",
+          show: true,
+        });
+        return;
+      }
+
+      const userData = await response.json();
+      localStorage.setItem("data", JSON.stringify(userData));
+      navigate("/dashboard");
+    }
+  };
 
   return (
     <main
       id="main-container"
       className="flex flex-row justify-center items-center h-screen w-screen"
+      onKeyDown={(event) => (event.key == "Enter" ? handleConnection() : "")}
     >
       <Header />
       <Notification
-        message={notification.message}
-        color={notification.color}
+        message={notification.message || ""}
+        color={notification.color || ""}
         show={notification.show}
       />
       <div
@@ -102,43 +159,7 @@ export default function Login() {
           id="sign-in-button"
           type="button"
           className="bg-red-500 rounded-2xl text-white text-2xl pt-1 pb-1 mt-3 hover:bg-red-900 active:bg-black"
-          onClick={async () => {
-            setUsernameError(false);
-            setUsernameWarn("");
-            setPasswordError(false);
-            setPasswordWarn("");
-
-            if (!password.length || !username.length) {
-              setPasswordError(true);
-              setUsernameError(true);
-            } else if (!usernameError && !passwordError) {
-              const response = await fetch(`${API_SERVER_URL}/api/login`, {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  username: username,
-                  password: password,
-                }),
-              });
-
-              if (!response.ok) {
-                setUsernameWarn("Incorrect");
-                setPasswordWarn("Incorrect");
-                setNotifaction({
-                  message: "Failed to connect!",
-                  color: "red",
-                  show: true,
-                });
-                return;
-              }
-
-              const userData = await response.json();
-              localStorage.setItem("data", JSON.stringify(userData));
-              navigate("/dashboard");
-            }
-          }}
+          onClick={() => handleConnection()}
         >
           Login
         </button>
