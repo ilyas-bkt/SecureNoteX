@@ -7,6 +7,9 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Error from "./pages/Error";
 import Dashboard from "./pages/Dashboard";
+import Note from "./pages/Note";
+
+export const API_SERVER_URL = String(import.meta.env["VITE_API_SERVER"]);
 
 const router = createBrowserRouter([
   {
@@ -28,6 +31,11 @@ const router = createBrowserRouter([
     element: <Dashboard />,
     errorElement: <Error />,
   },
+  {
+    path: "/note/:noteId",
+    element: <Note/>,
+    errorElement: <Error />
+  }
 ]);
 
 createRoot(document.getElementById("root")!).render(

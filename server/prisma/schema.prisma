@@ -21,6 +21,7 @@ model User {
   username  String    @unique
   password  String
   sessions  Session[]
+  notes     Note[]
 }
 
 model Session {
@@ -28,4 +29,14 @@ model Session {
   userId    String
   expireAt  DateTime
   user      User     @relation(fields: [userId], references: [id])
+}
+
+model Note {
+  id          String   @id @unique @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  title       String
+  description String
+  modifiedAt  DateTime
+  createdAt   DateTime
 }

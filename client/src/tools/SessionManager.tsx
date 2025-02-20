@@ -1,4 +1,4 @@
-const API_SERVER_URL = String(import.meta.env["VITE_API_SERVER"]);
+import { API_SERVER_URL } from "../main";
 
 export const IsSessionValid = async () => {
   if (!localStorage.getItem("data")) return false;

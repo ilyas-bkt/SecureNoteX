@@ -3,5 +3,12 @@
 @tailwind utilities;
 
 html{
-    font-family: "Bungee"
+    font-family: "Bungee";
+    height: 100%;
+    width: 100%;
+}
+
+#root{
+    height: 100%;
+    width: 100%;
 }

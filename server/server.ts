@@ -42,7 +42,7 @@ server.use((req, res, next) => {
 
   next();
 });
-
+server.use(helmet());
 server.use(express.json());
 
 server.use((req, _, next) => {
@@ -170,14 +170,13 @@ server.post("/api/session", async (req, res) => {
       return;
     } else if (sessionData.expireAt < new Date(Date.now())) {
       res.status(400).send();
-      const x = await db.session.deleteMany({
+      await db.session.deleteMany({
         where: {
           expireAt: {
             lt: new Date(Date.now()),
           },
         },
       });
-      console.log(x);
       return;
     }
 
@@ -187,6 +186,10 @@ server.post("/api/session", async (req, res) => {
     console.log(`[DB] Error verifying session : ${error}`);
   }
 });
+
+server.get("/notes/:id", () => {
+
+})
 
 https
   .createServer(

@@ -1,8 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import logo from "../assets/logo.jpg";
 import { Disconnect } from "../tools/SessionManager";
-
-const API_SERVER_URL = String(import.meta.env["VITE_API_SERVER"]);
+import { API_SERVER_URL } from "../main";
 
 export const Header: React.FC<{
   isLogin?: boolean;
@@ -13,7 +12,7 @@ export const Header: React.FC<{
   return (
     <header
       id="header-container"
-      className="flex flex-row absolute top-0 left-0 h-[60px] border-b w-full shadow-md justify-between text-2xl items-center"
+      className="flex flex-row sticky top-0 left-0 h-[60px] border-b w-full shadow-md justify-between text-2xl items-center bg-white"
     >
       <div id="left-header-container" className="flex flex-row items-center">
         <img src={logo} alt="logo" className="h-[40px] text-[30px]" />

@@ -4,8 +4,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Notification } from "../components/Notification";
 import { IsSessionValid } from "../tools/SessionManager";
+import LoadingIMG from "../assets/colorful_loader.gif";
+import { API_SERVER_URL } from "../main";
 
-const API_SERVER_URL = String(import.meta.env["VITE_API_SERVER"]);
 
 export default function Login() {
   const [username, setUsername] = useState(String);
@@ -17,6 +18,7 @@ export default function Login() {
   const [usernameWarn, setUsernameWarn] = useState(String);
   const [passwordWarn, setPasswordWarn] = useState(String);
 
+  const [loading, setLoading] = useState(false);
   const [notification, setNotifaction] = useState(
     {} as {
       message?: string;
@@ -80,10 +82,12 @@ export default function Login() {
     setUsernameWarn("");
     setPasswordError(false);
     setPasswordWarn("");
+    setLoading(true);
 
     if (!password.length || !username.length) {
       setPasswordError(true);
       setUsernameError(true);
+      setLoading(false);
     } else if (!usernameError && !passwordError) {
       const response = await fetch(`${API_SERVER_URL}/api/login`, {
         method: "POST",
@@ -104,6 +108,7 @@ export default function Login() {
           color: "red",
           show: true,
         });
+        setLoading(false);
         return;
       }
 
@@ -114,75 +119,88 @@ export default function Login() {
   };
 
   return (
-    <main
-      id="main-container"
-      className="flex flex-row justify-center items-center h-screen w-screen"
-      onKeyDown={(event) => (event.key == "Enter" ? handleConnection() : "")}
-    >
+    <>
       <Header />
-      <Notification
-        message={notification.message || ""}
-        color={notification.color || ""}
-        show={notification.show}
-      />
-      <div
-        id="left-container"
-        className="flex flex-col border-solid border-2 border-r-0 p-6 h-[330px]"
+      <main
+        id="main-container"
+        className="flex flex-row justify-center items-center h-[85vh] w-screen"
+        onKeyDown={(event) => (event.key == "Enter" ? handleConnection() : "")}
       >
-        <div id="sub-title-container" className="pb-3 text-3xl underline">
-          Login
-        </div>
-        <SingleForm
-          id="username-data-container"
-          placeholder="Username"
-          title="Username"
-          fun={(e: React.ChangeEvent<HTMLInputElement>) => {
-            setUsername(e.target.value);
-          }}
-          value={username}
-          warn={usernameWarn}
-          error={usernameError}
+        <Notification
+          message={notification.message || ""}
+          color={notification.color || ""}
+          show={notification.show}
         />
-        <SingleForm
-          id="password-data-container"
-          placeholder="Password"
-          title="Password"
-          fun={(e: React.ChangeEvent<HTMLInputElement>) => {
-            setPassword(e.target.value);
-          }}
-          value={password}
-          error={passwordError}
-          warn={passwordWarn}
-          hide={true}
-        />
-        <button
-          id="sign-in-button"
-          type="button"
-          className="bg-red-500 rounded-2xl text-white text-2xl pt-1 pb-1 mt-3 hover:bg-red-900 active:bg-black"
-          onClick={() => handleConnection()}
+        <div
+          id="left-container"
+          className="flex flex-col border-solid border-2 border-r-0 p-6 h-[330px]"
         >
-          Login
-        </button>
-      </div>
-      <div
-        id="right-container"
-        className="flex flex-col p-6 h-[330px] border border-l-0 bg-red-500 text-white justify-center items-center w-[330px]"
-      >
-        <div id="title-container" className="pb-3 text-2xl">
-          Welcome to login
+          <div id="sub-title-container" className="pb-3 text-3xl underline">
+            Login
+          </div>
+          <SingleForm
+            id="username-data-container"
+            placeholder="Username"
+            title="Username"
+            fun={(e: React.ChangeEvent<HTMLInputElement>) => {
+              setUsername(e.target.value);
+            }}
+            value={username}
+            warn={usernameWarn}
+            error={usernameError}
+          />
+          <SingleForm
+            id="password-data-container"
+            placeholder="Password"
+            title="Password"
+            fun={(e: React.ChangeEvent<HTMLInputElement>) => {
+              setPassword(e.target.value);
+            }}
+            value={password}
+            error={passwordError}
+            warn={passwordWarn}
+            hide={true}
+          />
+          <button
+            id="sign-in-button"
+            type="button"
+            className="bg-red-500 rounded-2xl text-white text-2xl pt-1 pb-1 mt-3 hover:bg-red-900 active:bg-black"
+            onClick={() => handleConnection()}
+          >
+            Login
+          </button>
+          {loading ? (
+            <div
+              id="loading-container"
+              className="flex flex-row gap-2 h-[27px] justify-center items-center"
+            >
+              <img src={LoadingIMG} alt="LoadingIMG" className="h-[80%]" />
+              Connecting...
+            </div>
+          ) : (
+            <></>
+          )}
         </div>
-        <div id="question-container" className="text-base pb-1">
-          Don't have an account?
-        </div>
-        <Link
-          to={"/register"}
-          id="register-button"
-          type="button"
-          className="border-2 rounded-2xl p-1 pr-2 pl-2 text-xl hover:bg-red-900 active:bg-black"
+        <div
+          id="right-container"
+          className="flex flex-col p-6 h-[330px] border border-l-0 bg-red-500 text-white justify-center items-center w-[330px]"
         >
-          Register
-        </Link>
-      </div>
-    </main>
+          <div id="title-container" className="pb-3 text-2xl">
+            Welcome to login
+          </div>
+          <div id="question-container" className="text-base pb-1">
+            Don't have an account?
+          </div>
+          <Link
+            to={"/register"}
+            id="register-button"
+            type="button"
+            className="border-2 rounded-2xl p-1 pr-2 pl-2 text-xl hover:bg-red-900 active:bg-black"
+          >
+            Register
+          </Link>
+        </div>
+      </main>
+    </>
   );
 }
