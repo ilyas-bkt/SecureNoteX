@@ -3,7 +3,7 @@ import DeleteIcon from "../assets/delete-icon.png";
 import EditIcon from "../assets/edit-icon.png";
 import { API_SERVER_URL } from "../main";
 import { useContext } from "react";
-import { SessionContext } from "../tools/SessionContext";
+import { DashboardContext } from "../tools/DashboardContext";
 
 export const NotePreview: React.FC<{
   title: string;
@@ -11,30 +11,34 @@ export const NotePreview: React.FC<{
   modifiedAt: string;
   description?: string;
   noteId: string;
-}> = ({ title, createdAt, modifiedAt, description, noteId }) => {
+  componentId: string;
+}> = ({ title, createdAt, modifiedAt, description, componentId, noteId }) => {
   const navigate = useNavigate();
-  const sessionId = useContext(SessionContext);
+  const dashboardContext = useContext(DashboardContext);
 
   return (
     <div
-      id={`note-preview-container-${noteId}`}
+      id={`note-preview-container-${componentId}`}
       className="border-[2px] w-full rounded-[20px] p-[10px] pl-[20px] flex flex-row justify-between hover:bg-slate-200 hover:cursor-pointer hover:shadow-2xl"
-      onClick={() => navigate(`/note/${noteId}`)}
+      //onClick={() => navigate(`/notes/${noteId}`)}
     >
       <div id="note-left-container" className="flex flex-col max-w-[700px]">
-        <span id={`note-title-${noteId}`} className="font-bold text-[30px]">
+        <span
+          id={`note-title-${componentId}`}
+          className="font-bold text-[30px]"
+        >
           {title}
         </span>
         <span
-          id={`note-description-${noteId}`}
+          id={`note-description-${componentId}`}
           className="text-gray-700 text-[18px] "
         >
           {description}
         </span>
-        <span id={`note-modified-at-${noteId}`} className="text-blue-900">
+        <span id={`note-modified-at-${componentId}`} className="text-blue-900">
           Modified {modifiedAt}
         </span>
-        <span id={`note-created-at-${noteId}`} className="text-blue-900">
+        <span id={`note-created-at-${componentId}`} className="text-blue-900">
           Created {createdAt}
         </span>
       </div>
@@ -44,17 +48,37 @@ export const NotePreview: React.FC<{
           alt="Delete"
           className="h-[35px] w-[35px] m-[2px] hover:h-[39px] hover:w-[39px] hover:m-0 active:opacity-50"
           onClick={async () => {
-            const response = await fetch(`${API_SERVER_URL}/note/${noteId}`, {
+            const response = await fetch(`${API_SERVER_URL}/api/note`, {
               method: "DELETE",
               headers: {
                 "Content-Type": "application/json",
-                Authorization: sessionId,
+                Authorization: dashboardContext.sessionId,
               },
+              body: JSON.stringify({
+                noteId: noteId,
+              }),
             });
 
             if (response.ok) {
-              //...
+              dashboardContext.setNoteList((noteList) =>
+                noteList.filter((note) => note.noteId !== noteId)
+              );
+              dashboardContext.setNotification({
+                message: "Deleted note successfully!",
+                color: "green",
+                show: true,
+              });
+            } else {
+              dashboardContext.setNotification({
+                message: "Error while deleting note!",
+                color: "red",
+                show: true,
+              });
             }
+            setTimeout(
+              () => dashboardContext.setNotification({ show: false }),
+              4000
+            );
           }}
         />
         <img

@@ -30,9 +30,9 @@ export const Header: React.FC<{
             className="bg-red-500 rounded-2xl text-white text-2xl pt-1 pb-1 pl-3 pr-3 hover:bg-red-900 active:bg-black"
             onClick={async () => {
               const sessionId = JSON.parse(
-                localStorage.getItem("data") as string
+                localStorage.getItem("userData") as string
               ).sessionId as string;
-              await fetch(`${API_SERVER_URL}/api/logout`, {
+              await fetch(`${API_SERVER_URL}/api/user/logout`, {
                 method: "POST",
                 headers: {
                   "Content-Type": "application/json",

@@ -44,12 +44,56 @@ export default function Register() {
     setPasswordError(false);
   }, [password]);
 
+  const handleRegisterConnection = () => {
+    if (password.length === 0) {
+      setPasswordError(true);
+    }
+    if (firstname.length === 0) {
+      setFirstNameError(true);
+    }
+    if (lastname.length === 0) {
+      setLastNameError(true);
+    }
+    if (username.length === 0) {
+      setUsernameError(true);
+    }
+    if (firstname && lastname && username && password) {
+      fetch(`${API_SERVER_URL}/api/user/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          firstname: firstname,
+          lastname: lastname,
+          username: username,
+          password: password,
+        }),
+      })
+        .then((response) => {
+          if (response.status === 500) setUsernameWarn("Already exists");
+          else if (response.status === 201) {
+            setShowNotification(true);
+            setTimeout(() => {
+              navigate("/login");
+            }, 1000);
+          }
+        })
+        .catch((error) => {
+          console.log("Failed to fetch :", error);
+        });
+    }
+  };
+
   return (
     <>
       <Header />
       <main
         id="main-container"
         className="flex flex-row justify-center items-center h-[85vh] w-screen"
+        onKeyDown={(event) =>
+          event.key == "Enter" ? handleRegisterConnection() : ""
+        }
       >
         <Notification
           message="Account created!"
@@ -109,47 +153,7 @@ export default function Register() {
             id="sign-in-button"
             type="button"
             className="bg-red-500 rounded-2xl text-white text-2xl pt-1 pb-1 mt-3 hover:bg-red-900 active:bg-black"
-            onClick={() => {
-              if (password.length === 0) {
-                setPasswordError(true);
-              }
-              if (firstname.length === 0) {
-                setFirstNameError(true);
-              }
-              if (lastname.length === 0) {
-                setLastNameError(true);
-              }
-              if (username.length === 0) {
-                setUsernameError(true);
-              }
-              if (firstname && lastname && username && password) {
-                fetch(`${API_SERVER_URL}/api/register`, {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify({
-                    firstname: firstname,
-                    lastname: lastname,
-                    username: username,
-                    password: password,
-                  }),
-                })
-                  .then((response) => {
-                    if (response.status === 500)
-                      setUsernameWarn("Already exists");
-                    else if (response.status === 201) {
-                      setShowNotification(true);
-                      setTimeout(() => {
-                        navigate("/login");
-                      }, 1000);
-                    }
-                  })
-                  .catch((error) => {
-                    console.log("Failed to fetch :", error);
-                  });
-              }
-            }}
+            onClick={() => handleRegisterConnection()}
           >
             Register
           </button>

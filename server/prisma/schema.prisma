@@ -32,7 +32,7 @@ model Session {
 }
 
 model Note {
-  id          String   @id @unique @default(uuid())
+  noteId      String   @id @unique @default(uuid())
   userId      String
   user        User     @relation(fields: [userId], references: [id])
   title       String

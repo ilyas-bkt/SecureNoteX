@@ -77,7 +77,7 @@ export default function Login() {
     }, 4000);
   }, [navigate]);
 
-  const handleConnection = async () => {
+  const handleLoginConnection = async () => {
     setUsernameError(false);
     setUsernameWarn("");
     setPasswordError(false);
@@ -89,7 +89,7 @@ export default function Login() {
       setUsernameError(true);
       setLoading(false);
     } else if (!usernameError && !passwordError) {
-      const response = await fetch(`${API_SERVER_URL}/api/login`, {
+      const response = await fetch(`${API_SERVER_URL}/api/user/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -113,7 +113,7 @@ export default function Login() {
       }
 
       const userData = await response.json();
-      localStorage.setItem("data", JSON.stringify(userData));
+      localStorage.setItem("userData", JSON.stringify(userData));
       navigate("/dashboard");
     }
   };
@@ -124,7 +124,7 @@ export default function Login() {
       <main
         id="main-container"
         className="flex flex-row justify-center items-center h-[85vh] w-screen"
-        onKeyDown={(event) => (event.key == "Enter" ? handleConnection() : "")}
+        onKeyDown={(event) => (event.key == "Enter" ? handleLoginConnection() : "")}
       >
         <Notification
           message={notification.message || ""}
@@ -165,7 +165,7 @@ export default function Login() {
             id="sign-in-button"
             type="button"
             className="bg-red-500 rounded-2xl text-white text-2xl pt-1 pb-1 mt-3 hover:bg-red-900 active:bg-black"
-            onClick={() => handleConnection()}
+            onClick={() => handleLoginConnection()}
           >
             Login
           </button>
