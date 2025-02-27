@@ -1,130 +1,193 @@
+import { SESSION_TIMEOUT_HOURS } from "./../server";
 import express from "express";
 import { db } from "../server";
 import argon2 from "argon2";
-import { v4 } from "uuid";
+import { webcrypto } from "node:crypto";
 
 export const userRouter = express.Router();
 
-userRouter.post("/register", async (req, res) => {
-  await db.user
-    .create({
-      data: {
-        firstname: req.body.firstname as string,
-        lastname: req.body.lastname as string,
-        username: req.body.username as string,
-        password: (await argon2.hash(req.body.password)) as string,
+userRouter.get("/", async (req, res) => {
+  try {
+    if (!req.cookies.sessionId) throw new Error("No cookies in header");
+    const sessionFound = await db.session.findUnique({
+      where: {
+        sessionId: req.cookies.sessionId,
       },
-    })
-    .then((data) => {
-      res.status(201).send();
-      console.log(`[DB] New user created : ${JSON.stringify(data)}`);
-    })
-    .catch((error: string) => {
-      let message = error;
-      if (String(error).includes("Unique constraint")) {
-        message = "username already exists";
-      }
-      console.log(`[DB] Failed to create a new user : ${message}`);
-      res.status(500).send();
     });
-  return;
+
+    if (!sessionFound) throw new Error("No session ID found");
+
+    const userData = await db.user.findUnique({
+      where: {
+        id: sessionFound.userId,
+      },
+      select: {
+        firstname: true,
+        lastname: true,
+        username: true,
+      },
+    });
+
+    if (!userData) throw new Error("Unable to get user data");
+
+    res.status(200).json(userData);
+  } catch (error) {
+    console.log(`[DB] Failed to verify session. ${error}`);
+    res.sendStatus(400);
+  }
 });
 
-userRouter.post("/login", async (req, res, next) => {
-  await db.user
-    .findUnique({
-      where: {
-        username: req.body.username as string,
+userRouter.post("/register", async (req, res) => {
+  try {
+    const userData: {
+      firstname: string;
+      lastname: string;
+      username: string;
+      password: string;
+    } = req.body;
+
+    if (!userData) throw new Error("Empty field");
+
+    const userCreated = await db.user.create({
+      data: {
+        firstname: userData.firstname,
+        lastname: userData.lastname,
+        username: userData.username,
+        password: await argon2.hash(userData.password),
       },
-    })
-    .then(async (userData) => {
-      if (
-        await argon2.verify(userData?.password as string, req.body.password)
-      ) {
-        const sessionId = v4();
-
-        res.status(202).json({
-          username: userData?.username,
-          firstname: userData?.firstname,
-          lastname: userData?.lastname,
-          sessionId: sessionId,
-        });
-        console.log(
-          `[DB] User ${userData?.username} is successfully connected`
-        );
-
-        try {
-          const sessionData = await db.session.create({
-            data: {
-              userId: userData?.id as string,
-              sessionId: sessionId as string,
-              expireAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-            },
-          });
-
-          console.log(
-            `[DB] New session created : ${JSON.stringify(
-              sessionData.sessionId
-            )}`
-          );
-        } catch (error) {
-          console.log(`[DB] Error creating session : ${error}`);
-        }
-      } else {
-        res.status(400).send();
-      }
-    })
-    .catch(() => {
-      console.log(`[DB] No username (${req.body.username}) in database.`);
-      res.status(400).send();
-      next();
     });
+    console.log(JSON.stringify(userCreated));
+    if (!userCreated) throw new Error("Username already used");
+
+    res.sendStatus(200);
+    console.log("[DB] New user created.");
+  } catch (error) {
+    if (String(error).includes("User_username_key")) {
+      res.sendStatus(500);
+      console.log(
+        `[DB] Failed to create a new user. Error: Username already used`
+      );
+    } else {
+      res.sendStatus(400);
+      console.log(`[DB] Failed to create a new user. ${error}`);
+    }
+  }
+});
+
+userRouter.post("/login", async (req, res) => {
+  try {
+    const userFound = await db.user.findUnique({
+      where: {
+        username: req.body.username,
+      },
+    });
+
+    if (!userFound) throw new Error("Username not found");
+
+    if (!(await argon2.verify(userFound.password, req.body.password)))
+      throw new Error("Wrong password");
+
+    const generatedSessionId = Buffer.from(
+      webcrypto.getRandomValues(new Uint8Array(32))
+    ).toString("hex");
+
+    const sessionCreated = await db.session.create({
+      data: {
+        sessionId: generatedSessionId,
+        userId: userFound.id,
+        expireAt: new Date(Date.now() + SESSION_TIMEOUT_HOURS * 60 * 60 * 1000),
+      },
+    });
+
+    if (!sessionCreated) throw new Error("Failed to create session");
+    res
+      .cookie("sessionId", sessionCreated.sessionId, {
+        secure: false,
+        httpOnly: true,
+        sameSite: "lax",
+        maxAge: SESSION_TIMEOUT_HOURS * 60 * 60 * 1000,
+      })
+      .sendStatus(200);
+    console.log("[DB] Session created successfully.");
+  } catch (error) {
+    console.log(`[DB] Failed to connect user. ${error}`);
+    res.sendStatus(400);
+  }
 });
 
 userRouter.post("/logout", async (req, res) => {
   try {
-    await db.session.delete({
+    if (!req.cookies.sessionId) throw new Error("No cookies in header");
+    const findSession = await db.session.findUnique({
       where: {
-        sessionId: req.body.sessionId,
+        sessionId: req.cookies.sessionId,
       },
     });
 
-    res.status(200).send();
-    console.log(
-      `[DB] User session deleted successfully : ${req.body.sessionId}`
-    );
+    if (!findSession) {
+      res.clearCookie("sessionId").sendStatus(200);
+      return;
+    }
+
+    const deletedSession = await db.session.delete({
+      where: {
+        sessionId: req.cookies.sessionId,
+      },
+    });
+
+    if (!deletedSession) throw new Error("Session is not deleted in database");
+
+    res.clearCookie("sessionId").sendStatus(200);
+    console.log("[DB] Session deleted successfully.");
   } catch (error) {
-    res.status(400).send();
-    console.log(`[DB] Error deleting session`);
+    res.sendStatus(400);
+    console.log(`[DB] Failed to delete session. ${error}`);
   }
 });
 
 userRouter.post("/session", async (req, res) => {
   try {
-    const sessionData = await db.session.findUnique({
+    if (!req.cookies.sessionId) throw new Error("No cookies in header");
+
+    const sessionFound = await db.session.findUnique({
       where: {
-        sessionId: req.headers.authorization,
+        sessionId: req.cookies.sessionId,
       },
     });
 
-    if (!sessionData) {
-      res.status(400).send();
-      return;
-    } else if (sessionData.expireAt < new Date(Date.now())) {
-      res.status(400).send();
-      await db.session.deleteMany({
+    if (!sessionFound) throw new Error("No session ID found");
+
+    if (sessionFound.expireAt < new Date()) {
+      await db.session.delete({
         where: {
-          expireAt: {
-            lt: new Date(Date.now()),
-          },
+          sessionId: sessionFound.sessionId,
         },
       });
-      return;
+
+      throw new Error("Session expired");
     }
 
-    res.status(200).send();
+    const sessionUpdated = await db.session.update({
+      where: {
+        sessionId: sessionFound.sessionId,
+      },
+      data: {
+        expireAt: new Date(Date.now() + SESSION_TIMEOUT_HOURS * 60 * 60 * 1000),
+      },
+    });
+
+    if (!sessionUpdated) throw new Error("Couldn't refresh session");
+
+    res
+      .cookie("sessionId", sessionFound.sessionId, {
+        httpOnly: true,
+        secure: false,
+        sameSite: "lax",
+        maxAge: SESSION_TIMEOUT_HOURS * 60 * 60 * 1000,
+      })
+      .sendStatus(200);
   } catch (error) {
-    res.status(500).send();
-    console.log(`[DB] Error verifying session : ${error}`);
+    console.log(`[DB] Failed to verify session. ${error}`);
+    res.sendStatus(400);
   }
 });

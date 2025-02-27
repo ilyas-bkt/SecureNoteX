@@ -7,81 +7,108 @@ import { IsSessionValid } from "../tools/SessionManager";
 import { API_SERVER_URL } from "../main";
 
 export default function Register() {
-  const [firstname, setFirstName] = useState("");
-  const [lastname, setLastName] = useState("");
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-
-  const [firstNameError, setFirstNameError] = useState(Boolean);
-  const [lastNameError, setLastNameError] = useState(Boolean);
-  const [usernameError, setUsernameError] = useState(Boolean);
-  const [passwordError, setPasswordError] = useState(Boolean);
-
-  const [usernameWarn, setUsernameWarn] = useState(String);
-  const [showNotification, setShowNotification] = useState(Boolean);
   const navigate = useNavigate();
 
+  const [firstname, setFirstname] = useState({ value: "" } as {
+    value: string;
+    highlight: boolean;
+  });
+  const [lastname, setLastname] = useState({ value: "" } as {
+    value: string;
+    highlight: boolean;
+  });
+  const [password, setPassword] = useState({ value: "" } as {
+    value: string;
+    highlight: boolean;
+    errorMessage?: string;
+  });
+  const [username, setUsername] = useState({ value: "" } as {
+    value: string;
+    highlight: boolean;
+    errorMessage?: string;
+  });
+  const [notification, setNotification] = useState(
+    {} as {
+      message?: string;
+      color?: string;
+      show: boolean;
+    }
+  );
+
   useEffect(() => {
-    IsSessionValid().then((isValid) => {
-      if (isValid) navigate("/dashboard");
-    });
+    const verifySession = async () => {
+      if (await IsSessionValid()) navigate("/dashboard");
+    };
+
+    verifySession();
   }, [navigate]);
 
-  useEffect(() => {
-    setUsernameWarn("");
-    setUsernameError(false);
-  }, [username]);
-
-  useEffect(() => {
-    setFirstNameError(false);
-  }, [firstname]);
-
-  useEffect(() => {
-    setLastNameError(false);
-  }, [lastname]);
-
-  useEffect(() => {
-    setPasswordError(false);
-  }, [password]);
-
-  const handleRegisterConnection = () => {
-    if (password.length === 0) {
-      setPasswordError(true);
-    }
-    if (firstname.length === 0) {
-      setFirstNameError(true);
-    }
-    if (lastname.length === 0) {
-      setLastNameError(true);
-    }
-    if (username.length === 0) {
-      setUsernameError(true);
-    }
-    if (firstname && lastname && username && password) {
-      fetch(`${API_SERVER_URL}/api/user/register`, {
+  const handleRegisterConnection = async () => {
+    if (
+      password.value.length &&
+      username.value.length &&
+      firstname.value.length &&
+      lastname.value.length
+    ) {
+      const response = await fetch(`${API_SERVER_URL}/api/user/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          firstname: firstname,
-          lastname: lastname,
-          username: username,
-          password: password,
+          username: username.value,
+          password: password.value,
+          firstname: firstname.value,
+          lastname: lastname.value,
         }),
-      })
-        .then((response) => {
-          if (response.status === 500) setUsernameWarn("Already exists");
-          else if (response.status === 201) {
-            setShowNotification(true);
-            setTimeout(() => {
-              navigate("/login");
-            }, 1000);
-          }
-        })
-        .catch((error) => {
-          console.log("Failed to fetch :", error);
+      });
+
+      if (response.status == 500) {
+        setUsername(({ value }) => ({
+          value: value,
+          errorMessage: "Already chosen!",
+          highlight: true,
+        }));
+        setNotification({
+          message: "Username already chosen!",
+          color: "red",
+          show: true,
         });
+      } else if (!response.ok) {
+        setNotification({
+          message: "Failed to register!",
+          color: "red",
+          show: true,
+        });
+      } else {
+        setNotification({
+          message: "Account created successfully!",
+          color: "green",
+          show: true,
+        });
+        setTimeout(() => navigate("/login"), 2000);
+      }
+
+      setTimeout(() => {
+        setNotification({ show: false });
+      }, 4000);
+    } else {
+      setUsername(({ value }) => ({
+        value: value,
+        highlight: !username.value.length,
+      }));
+      setPassword(({ value }) => ({
+        highlight: !password.value.length,
+        value: value,
+      }));
+      setFirstname(({ value }) => ({
+        highlight: !firstname.value.length,
+        value: value,
+      }));
+      setLastname(({ value }) => ({
+        highlight: !lastname.value.length,
+        value: value,
+      }));
     }
   };
 
@@ -96,9 +123,9 @@ export default function Register() {
         }
       >
         <Notification
-          message="Account created!"
-          color="green"
-          show={showNotification}
+          message={notification.message || ""}
+          color={notification.color || ""}
+          show={notification.show}
         />
         <div
           id="left-container"
@@ -108,46 +135,55 @@ export default function Register() {
             Register
           </div>
           <SingleForm
-            id="firstname-data-container"
             placeholder="First Name"
             title="First Name"
-            fun={(e: React.ChangeEvent<HTMLInputElement>) => {
-              setFirstName(e.target.value);
+            value={firstname.value}
+            highlight={firstname.highlight}
+            onChange={(event) => {
+              setFirstname({
+                value: event.target.value,
+                highlight: false,
+              });
             }}
-            value={firstname}
-            error={firstNameError}
           />
           <SingleForm
-            id="lastname-data-container"
             placeholder="Last Name"
             title="Last Name"
-            fun={(e: React.ChangeEvent<HTMLInputElement>) => {
-              setLastName(e.target.value);
+            value={lastname.value}
+            highlight={lastname.highlight}
+            onChange={(event) => {
+              setLastname({
+                value: event.target.value,
+                highlight: false,
+              });
             }}
-            value={lastname}
-            error={lastNameError}
           />
           <SingleForm
-            id="username-data-container"
             placeholder="Username"
             title="Username"
-            fun={(e: React.ChangeEvent<HTMLInputElement>) => {
-              setUsername(e.target.value);
+            value={username.value}
+            highlight={username.highlight}
+            errorMessage={username.errorMessage}
+            onChange={(event) => {
+              setUsername({
+                value: event.target.value,
+                highlight: false,
+                errorMessage: "",
+              });
             }}
-            value={username}
-            error={usernameError}
-            warn={usernameWarn}
           />
           <SingleForm
-            id="password-data-container"
             placeholder="Password"
             title="Password"
-            fun={(e: React.ChangeEvent<HTMLInputElement>) => {
-              setPassword(e.target.value);
+            value={password.value}
+            highlight={password.highlight}
+            hideValue={true}
+            onChange={(event) => {
+              setPassword({
+                value: event.target.value,
+                highlight: false,
+              });
             }}
-            value={password}
-            error={passwordError}
-            hide={true}
           />
           <button
             id="sign-in-button"

@@ -1,9 +1,9 @@
-import { useNavigate } from "react-router-dom";
 import DeleteIcon from "../assets/delete-icon.png";
 import EditIcon from "../assets/edit-icon.png";
 import { API_SERVER_URL } from "../main";
 import { useContext } from "react";
 import { DashboardContext } from "../tools/DashboardContext";
+import { UpdateLocalStorage } from "../tools/SessionManager";
 
 export const NotePreview: React.FC<{
   title: string;
@@ -13,7 +13,6 @@ export const NotePreview: React.FC<{
   noteId: string;
   componentId: string;
 }> = ({ title, createdAt, modifiedAt, description, componentId, noteId }) => {
-  const navigate = useNavigate();
   const dashboardContext = useContext(DashboardContext);
 
   return (
@@ -50,9 +49,9 @@ export const NotePreview: React.FC<{
           onClick={async () => {
             const response = await fetch(`${API_SERVER_URL}/api/note`, {
               method: "DELETE",
+              credentials: "include",
               headers: {
                 "Content-Type": "application/json",
-                Authorization: dashboardContext.sessionId,
               },
               body: JSON.stringify({
                 noteId: noteId,
@@ -68,6 +67,7 @@ export const NotePreview: React.FC<{
                 color: "green",
                 show: true,
               });
+              UpdateLocalStorage();
             } else {
               dashboardContext.setNotification({
                 message: "Error while deleting note!",

@@ -12,6 +12,7 @@
   "description": "",
   "devDependencies": {
     "@prisma/client": "^6.4.1",
+    "@types/cookie-parser": "^1.4.8",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/node": "^22.10.5",
@@ -27,6 +28,7 @@
   },
   "dependencies": {
     "argon2": "^0.41.1",
+    "cookie-parser": "^1.4.7",
     "path": "^0.12.7",
     "uuid": "^11.0.5"
   }

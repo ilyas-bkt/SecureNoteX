@@ -5,22 +5,17 @@ export const noteRouter = express.Router();
 
 noteRouter.get("/", async (req, res) => {
   try {
-    const findUserStatus = await db.session.findUnique({
+    const foundSession = await db.session.findUnique({
       where: {
-        sessionId: req.headers.authorization,
+        sessionId: req.cookies.sessionId,
       },
     });
 
-    if (!findUserStatus) {
-      console.log(
-        `[DB] No user found with session ID : ${req.headers.authorization}`
-      );
-      throw new Error();
-    }
+    if (!foundSession) throw new Error("No user found with sessionId");
 
     const findNotesStatus = await db.note.findMany({
       where: {
-        userId: findUserStatus.userId,
+        userId: foundSession.userId,
       },
       select: {
         title: true,
@@ -32,27 +27,25 @@ noteRouter.get("/", async (req, res) => {
     });
 
     res.status(200).json(findNotesStatus);
-  } catch {
+  } catch (error) {
+    console.log(`[DB] Unable to get user notes. ${error}`);
     res.sendStatus(400);
   }
 });
 
 noteRouter.post("/", async (req, res) => {
   try {
-    const findUserStatus = await db.session.findUnique({
+    if (!req.cookies.sessionId) throw new Error("No cookies in header");
+    const foundSession = await db.session.findUnique({
       where: {
-        sessionId: req.headers.authorization,
+        sessionId: req.cookies.sessionId,
       },
     });
-    if (!findUserStatus) {
-      console.log(
-        `[DB] (Creating new note...) No user found with this session ID : ${req.body.sessionId}`
-      );
-      throw new Error();
-    }
-    const newNoteStatus = await db.note.create({
+    if (!foundSession) throw new Error("No session ID found");
+
+    const createdNote = await db.note.create({
       data: {
-        userId: findUserStatus.userId,
+        userId: foundSession.userId,
         title: req.body.title,
         description: req.body.description,
         createdAt: req.body.createdAt,
@@ -66,16 +59,12 @@ noteRouter.post("/", async (req, res) => {
         noteId: true,
       },
     });
+    if (!createdNote) throw new Error("Unable to create a new note");
 
-    if (newNoteStatus) {
-      console.log(
-        `[DB] Created a new note for user ID : ${findUserStatus.userId}`
-      );
-      res.status(200).json(newNoteStatus);
-    } else {
-      throw new Error();
-    }
-  } catch {
+    res.status(200).json(createdNote);
+    console.log("[DB] Note created successfully");
+  } catch (error) {
+    console.log(`[DB] Error while creating note. ${error}`);
     res.sendStatus(400);
   }
 });
@@ -86,40 +75,30 @@ noteRouter.put("/", () => {
 
 noteRouter.delete("/", async (req, res) => {
   try {
-    const findUserStatus = await db.session.findUnique({
+    if (!req.cookies.sessionId) throw new Error("No cookies in header");
+    const foundSession = await db.session.findUnique({
       where: {
-        sessionId: req.headers.authorization,
+        sessionId: req.cookies.sessionId,
       },
     });
 
-    if (!findUserStatus) {
-      console.log(
-        `[DB] (Deleting note...) No user found with this session ID : ${req.body.sessionId}`
-      );
-      throw new Error();
-    }
-
-    console.log(req.body.noteId, findUserStatus.userId);
+    if (!foundSession) throw new Error("Session not found");
 
     const deletedNoteStatus = await db.note.delete({
       where: {
         noteId: req.body.noteId,
         user: {
-          id: findUserStatus.userId
-        }
+          id: foundSession.userId,
+        },
       },
     });
 
-    if (deletedNoteStatus) {
-      console.log(`[DB] Deleted note for user ID : ${findUserStatus.userId}`);
-      res.sendStatus(200);
-    } else {
-      console.log(
-        `[DB] No note to delete found with note ID : ${req.body.noteId}`
-      );
-      throw new Error();
-    }
-  } catch {
-    res.status(400).send();
+    if (!deletedNoteStatus) throw new Error("Failed to delete note");
+
+    res.sendStatus(200);
+    console.log("[DB] Note deleted successfully");
+  } catch (error) {
+    console.log(`[DB] Failed to delete note. ${error}`);
+    res.sendStatus(400);
   }
 });

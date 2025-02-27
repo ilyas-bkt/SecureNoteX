@@ -1,46 +1,39 @@
 import React from "react";
 
-interface SingleFormProps {
-  id: string;
+export const SingleForm: React.FC<{
   placeholder: string;
   title: string;
-  fun: (event: React.ChangeEvent<HTMLInputElement>) => void;
   value: string;
-  error: boolean;
-  warn?: string;
-  hide?: boolean;
-}
-
-export const SingleForm: React.FC<SingleFormProps> = ({
-  id,
+  highlight: boolean;
+  errorMessage?: string;
+  hideValue?: boolean;
+  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+}> = ({
   title,
   placeholder,
   value,
-  fun,
-  error,
-  warn,
-  hide,
+  highlight,
+  errorMessage,
+  hideValue,
+  onChange,
 }) => {
   return (
-    <div className={`flex flex-col text-xl ${error ? "pb-2" : "pb-3"}`}>
+    <div className={`flex flex-col text-xl ${highlight ? "pb-2" : "pb-3"}`}>
       <div className="flex flex-row justify-between items-end">
         {title}
         <span className="gap-3 font-['Roboto'] text-sm text-red-500 font-bold">
-          {warn}
+          {errorMessage}
         </span>
       </div>
       <input
-        id={id}
-        type={hide ? "password" : "text"}
+        type={hideValue ? "password" : "text"}
         title={placeholder}
         placeholder={placeholder}
         className={`bg-gray-200 font-['Roboto'] p-1 pr-2 pl-3 rounded-xl outline-none ${
-          error || warn ? "border-2 border-red-600" : "border-none"
+          highlight || errorMessage ? "border-2 border-red-600" : "border-none"
         }`}
         value={value}
-        onChange={(e) => {
-          fun(e);
-        }}
+        onChange={onChange}
       />
     </div>
   );

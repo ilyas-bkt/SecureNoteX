@@ -2,7 +2,6 @@ import { createContext } from "react";
 
 export const DashboardContext = createContext(
   {} as {
-    sessionId: string;
     setNotification: React.Dispatch<
       React.SetStateAction<{
         message?: string;

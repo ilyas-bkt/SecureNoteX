@@ -7,18 +7,19 @@ import { IsSessionValid } from "../tools/SessionManager";
 import LoadingIMG from "../assets/colorful_loader.gif";
 import { API_SERVER_URL } from "../main";
 
-
 export default function Login() {
-  const [username, setUsername] = useState(String);
-  const [password, setPassword] = useState(String);
+  const navigate = useNavigate();
 
-  const [usernameError, setUsernameError] = useState(Boolean);
-  const [passwordError, setPasswordError] = useState(Boolean);
-
-  const [usernameWarn, setUsernameWarn] = useState(String);
-  const [passwordWarn, setPasswordWarn] = useState(String);
-
-  const [loading, setLoading] = useState(false);
+  const [password, setPassword] = useState({ value: "" } as {
+    value: string;
+    highlight: boolean;
+    errorMessage?: string;
+  });
+  const [username, setUsername] = useState({ value: "" } as {
+    value: string;
+    highlight: boolean;
+    errorMessage?: string;
+  });
   const [notification, setNotifaction] = useState(
     {} as {
       message?: string;
@@ -26,51 +27,29 @@ export default function Login() {
       show: boolean;
     }
   );
-
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    setUsernameError(false);
-    setUsernameWarn("");
-  }, [username]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    setPasswordError(false);
-    setPasswordWarn("");
-  }, [password]);
+    const verifySession = async () => {
+      if (await IsSessionValid()) navigate("/dashboard");
+    };
 
-  useEffect(() => {
-    IsSessionValid().then((isValid) => {
-      if (isValid) navigate("/dashboard");
-    });
+    const disconnectStatus: { message: string; error: boolean } = JSON.parse(
+      sessionStorage.getItem("status") as string
+    );
 
-    const status = sessionStorage.getItem("status") as string;
-    switch (status) {
-      case "Disconnected successfully!":
-        setNotifaction({
-          message: "Disconnected successfully!",
-          color: "green",
-          show: true,
-        });
-        break;
-      case "Session expired!":
-        setNotifaction({
-          message: "Session expired!",
-          color: "red",
-          show: true,
-        });
-        break;
-      case "Timeout reached!":
-        setNotifaction({
-          message: "Timeout reached!",
-          color: "red",
-          show: true,
-        });
-        break;
-    }
+    console.log(disconnectStatus);
+    if (disconnectStatus) {
+      setNotifaction({
+        message: disconnectStatus.message,
+        color: disconnectStatus.error ? "red" : "green",
+        show: true,
+      });
+    } else verifySession();
 
     setTimeout(() => {
       sessionStorage.clear();
+      localStorage.clear();
       setNotifaction({
         show: false,
       });
@@ -78,43 +57,50 @@ export default function Login() {
   }, [navigate]);
 
   const handleLoginConnection = async () => {
-    setUsernameError(false);
-    setUsernameWarn("");
-    setPasswordError(false);
-    setPasswordWarn("");
-    setLoading(true);
-
-    if (!password.length || !username.length) {
-      setPasswordError(true);
-      setUsernameError(true);
-      setLoading(false);
-    } else if (!usernameError && !passwordError) {
+    if (username.value.length && password.value.length) {
+      setLoading(true);
       const response = await fetch(`${API_SERVER_URL}/api/user/login`, {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          username: username,
-          password: password,
+          username: username.value,
+          password: password.value,
         }),
       });
 
       if (!response.ok) {
-        setUsernameWarn("Incorrect");
-        setPasswordWarn("Incorrect");
+        setUsername(({ value }) => ({
+          value: value,
+          highlight: true,
+          errorMessage: "Incorrect!",
+        }));
+        setPassword(() => ({
+          value: "",
+          highlight: true,
+          errorMessage: "Incorrect!",
+        }));
         setNotifaction({
           message: "Failed to connect!",
           color: "red",
           show: true,
         });
+        setTimeout(() => setNotifaction({ show: false }), 4000);
         setLoading(false);
-        return;
+      } else {
+        navigate("/dashboard");
       }
-
-      const userData = await response.json();
-      localStorage.setItem("userData", JSON.stringify(userData));
-      navigate("/dashboard");
+    } else {
+      setUsername(({ value }) => ({
+        value: value,
+        highlight: !username.value.length,
+      }));
+      setPassword(({ value }) => ({
+        value: value,
+        highlight: !password.value.length,
+      }));
     }
   };
 
@@ -124,7 +110,9 @@ export default function Login() {
       <main
         id="main-container"
         className="flex flex-row justify-center items-center h-[85vh] w-screen"
-        onKeyDown={(event) => (event.key == "Enter" ? handleLoginConnection() : "")}
+        onKeyDown={(event) =>
+          event.key == "Enter" ? handleLoginConnection() : ""
+        }
       >
         <Notification
           message={notification.message || ""}
@@ -139,27 +127,33 @@ export default function Login() {
             Login
           </div>
           <SingleForm
-            id="username-data-container"
             placeholder="Username"
             title="Username"
-            fun={(e: React.ChangeEvent<HTMLInputElement>) => {
-              setUsername(e.target.value);
+            value={username.value || ""}
+            errorMessage={username.errorMessage || ""}
+            highlight={username.highlight}
+            onChange={(event) => {
+              setUsername({
+                value: event.target.value,
+                highlight: false,
+                errorMessage: "",
+              });
             }}
-            value={username}
-            warn={usernameWarn}
-            error={usernameError}
           />
           <SingleForm
-            id="password-data-container"
             placeholder="Password"
             title="Password"
-            fun={(e: React.ChangeEvent<HTMLInputElement>) => {
-              setPassword(e.target.value);
+            value={password.value || ""}
+            highlight={password.highlight}
+            errorMessage={password.errorMessage || ""}
+            hideValue={true}
+            onChange={(event) => {
+              setPassword({
+                value: event.target.value,
+                highlight: false,
+                errorMessage: "",
+              });
             }}
-            value={password}
-            error={passwordError}
-            warn={passwordWarn}
-            hide={true}
           />
           <button
             id="sign-in-button"
