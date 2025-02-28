@@ -38,7 +38,6 @@ export default function Login() {
       sessionStorage.getItem("status") as string
     );
 
-    console.log(disconnectStatus);
     if (disconnectStatus) {
       setNotifaction({
         message: disconnectStatus.message,

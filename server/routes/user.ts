@@ -3,23 +3,17 @@ import express from "express";
 import { db } from "../server";
 import argon2 from "argon2";
 import { webcrypto } from "node:crypto";
+import verifySession from "../tools/verifySession";
 
 export const userRouter = express.Router();
 
 userRouter.get("/", async (req, res) => {
   try {
-    if (!req.cookies.sessionId) throw new Error("No cookies in header");
-    const sessionFound = await db.session.findUnique({
-      where: {
-        sessionId: req.cookies.sessionId,
-      },
-    });
-
-    if (!sessionFound) throw new Error("No session ID found");
+    const sessionData = await verifySession(req.cookies.sessionId);
 
     const userData = await db.user.findUnique({
       where: {
-        id: sessionFound.userId,
+        id: sessionData.userId,
       },
       select: {
         firstname: true,
@@ -117,18 +111,13 @@ userRouter.post("/login", async (req, res) => {
 
 userRouter.post("/logout", async (req, res) => {
   try {
-    if (!req.cookies.sessionId) throw new Error("No cookies in header");
-    const findSession = await db.session.findUnique({
-      where: {
-        sessionId: req.cookies.sessionId,
-      },
-    });
+    const sessionData = await verifySession(req.cookies.sessionId);
 
-    if (!findSession) {
+    if (!sessionData) {
       res.clearCookie("sessionId").sendStatus(200);
       return;
     }
-
+    
     const deletedSession = await db.session.delete({
       where: {
         sessionId: req.cookies.sessionId,
@@ -147,20 +136,12 @@ userRouter.post("/logout", async (req, res) => {
 
 userRouter.post("/session", async (req, res) => {
   try {
-    if (!req.cookies.sessionId) throw new Error("No cookies in header");
+    const sessionData = await verifySession(req.cookies.sessionId);
 
-    const sessionFound = await db.session.findUnique({
-      where: {
-        sessionId: req.cookies.sessionId,
-      },
-    });
-
-    if (!sessionFound) throw new Error("No session ID found");
-
-    if (sessionFound.expireAt < new Date()) {
+    if (sessionData.expireAt < new Date()) {
       await db.session.delete({
         where: {
-          sessionId: sessionFound.sessionId,
+          sessionId: sessionData.sessionId,
         },
       });
 
@@ -169,7 +150,7 @@ userRouter.post("/session", async (req, res) => {
 
     const sessionUpdated = await db.session.update({
       where: {
-        sessionId: sessionFound.sessionId,
+        sessionId: sessionData.sessionId,
       },
       data: {
         expireAt: new Date(Date.now() + SESSION_TIMEOUT_HOURS * 60 * 60 * 1000),
@@ -179,7 +160,7 @@ userRouter.post("/session", async (req, res) => {
     if (!sessionUpdated) throw new Error("Couldn't refresh session");
 
     res
-      .cookie("sessionId", sessionFound.sessionId, {
+      .cookie("sessionId", sessionData.sessionId, {
         httpOnly: true,
         secure: false,
         sameSite: "lax",

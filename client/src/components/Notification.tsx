@@ -15,7 +15,7 @@ export const Notification: React.FC<{
       {show ? (
         <div
           id="notification-container"
-          className={`${colorClass[color]} bg-white absolute right-[0px] top-[90px] border-2 border-l-[10px] flex flex-row items-center min-h-[60px] w-[230px] gap-2 p-[4px]`}
+          className={`${colorClass[color]} bg-white fixed right-[0px] top-[90px] border-2 border-l-[10px] flex flex-row items-center min-h-[60px] w-[230px] gap-2 p-[4px]`}
         >
           <img
             src={color == "red" ? RedCross : GreenCHeck}

@@ -1,21 +1,16 @@
 import express from "express";
 import { db } from "../server";
+import verifySession from "../tools/verifySession";
 
 export const noteRouter = express.Router();
 
 noteRouter.get("/", async (req, res) => {
   try {
-    const foundSession = await db.session.findUnique({
-      where: {
-        sessionId: req.cookies.sessionId,
-      },
-    });
-
-    if (!foundSession) throw new Error("No user found with sessionId");
+    const sessionData = await verifySession(req.cookies.sessionId);
 
     const findNotesStatus = await db.note.findMany({
       where: {
-        userId: foundSession.userId,
+        userId: sessionData.userId,
       },
       select: {
         title: true,
@@ -35,17 +30,11 @@ noteRouter.get("/", async (req, res) => {
 
 noteRouter.post("/", async (req, res) => {
   try {
-    if (!req.cookies.sessionId) throw new Error("No cookies in header");
-    const foundSession = await db.session.findUnique({
-      where: {
-        sessionId: req.cookies.sessionId,
-      },
-    });
-    if (!foundSession) throw new Error("No session ID found");
+    const sessionData = await verifySession(req.cookies.sessionId);
 
     const createdNote = await db.note.create({
       data: {
-        userId: foundSession.userId,
+        userId: sessionData.userId,
         title: req.body.title,
         description: req.body.description,
         createdAt: req.body.createdAt,
@@ -75,20 +64,13 @@ noteRouter.put("/", () => {
 
 noteRouter.delete("/", async (req, res) => {
   try {
-    if (!req.cookies.sessionId) throw new Error("No cookies in header");
-    const foundSession = await db.session.findUnique({
-      where: {
-        sessionId: req.cookies.sessionId,
-      },
-    });
-
-    if (!foundSession) throw new Error("Session not found");
+    const sessionData = await verifySession(req.cookies.sessionId);
 
     const deletedNoteStatus = await db.note.delete({
       where: {
         noteId: req.body.noteId,
         user: {
-          id: foundSession.userId,
+          id: sessionData.userId,
         },
       },
     });

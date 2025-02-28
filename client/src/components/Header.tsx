@@ -11,7 +11,7 @@ export const Header: React.FC<{
   return (
     <header
       id="header-container"
-      className="flex flex-row sticky top-0 left-0 h-[60px] border-b w-full shadow-md justify-between text-2xl items-center bg-white"
+      className="z-20 flex flex-row sticky top-0 left-0 h-[60px] border-b w-full shadow-md justify-between text-2xl items-center bg-white"
     >
       <div id="left-header-container" className="flex flex-row items-center">
         <img src={logo} alt="logo" className="h-[40px] text-[30px]" />

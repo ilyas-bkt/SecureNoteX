@@ -20,5 +20,6 @@ export const DashboardContext = createContext(
         }[]
       >
     >;
+    setCreateNote: React.Dispatch<React.SetStateAction<boolean>>;
   }
 );
