@@ -65,28 +65,6 @@ export default function Dashboard() {
     prefetchPage();
   }, [navigate]);
 
-  const formatDate = (dateTime: string) => {
-    const parsedDateTime = new Date(Date.parse(dateTime)).getTime();
-    const currentDateTime = new Date().getTime();
-    const timeDifference = currentDateTime - parsedDateTime;
-
-    const days = timeDifference / (24 * 60 * 60 * 1000);
-    const hours = timeDifference / (60 * 60 * 1000);
-    const minutes = timeDifference / (60 * 1000);
-
-    let timeAgo: { value: number; units: string };
-
-    if (hours < 1) timeAgo = { value: Math.trunc(minutes), units: "minutes" };
-    else if (days < 1) timeAgo = { value: Math.trunc(hours), units: "hours" };
-    else timeAgo = { value: Math.trunc(days), units: "days" };
-
-    return timeAgo.value
-      ? `${timeAgo.value} ${
-          timeAgo.value == 1 ? timeAgo.units.replace("s", " ") : timeAgo.units
-        } ago`
-      : "now";
-  };
-
   return pageLoading ? (
     <>Loading...</>
   ) : (
@@ -120,10 +98,10 @@ export default function Dashboard() {
                 <NotePreview
                   title={noteData.title}
                   description={noteData.description}
-                  modifiedAt={formatDate(noteData.modifiedAt)}
-                  createdAt={formatDate(noteData.createdAt)}
+                  modifiedAt={noteData.modifiedAt}
+                  createdAt={noteData.createdAt}
                   noteId={noteData.noteId}
-                  componentId={`note-${index}`}
+                  componentId={String(index)}
                   key={index}
                 />
               );
@@ -138,9 +116,7 @@ export default function Dashboard() {
                 id="disconnect-button"
                 type="button"
                 className="bg-red-500 rounded-2xl text-white text-2xl pt-1 pb-1 pl-3 pr-3 hover:bg-red-900 active:bg-black"
-                onClick={() => {
-                  //... Create note
-                }}
+                onClick={() => setCreateNote(true)}
               >
                 Create your first note
               </button>

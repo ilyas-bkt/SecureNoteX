@@ -58,8 +58,53 @@ noteRouter.post("/", async (req, res) => {
   }
 });
 
-noteRouter.put("/", () => {
-  //... modify note data
+noteRouter.patch("/", async (req, res) => {
+  try {
+    const data: {
+      title: string;
+      description: string;
+      noteId: string;
+    } = req.body;
+    if (!data.noteId || !data.title || !data.description)
+      throw new Error("Empty elements");
+
+    const sessionData = await verifySession(req.cookies.sessionId);
+
+    const noteData = await db.note.findUnique({
+      where: {
+        userId: sessionData.userId,
+        noteId: data.noteId,
+      },
+    });
+    if (!noteData) throw new Error("No such note linked to account");
+
+    const modifiedNote = await db.note.update({
+      where: {
+        noteId: data.noteId,
+      },
+      data: {
+        title: data.title,
+        description: data.description,
+        modifiedAt: new Date(),
+      },
+      select: {
+        title: true,
+        description: true,
+      },
+    });
+    if (
+      modifiedNote.description !== data.description ||
+      modifiedNote.title !== data.title
+    ) {
+      throw new Error("Unable to make changes");
+    }
+
+    res.sendStatus(200);
+    console.log("[DB] Note modified successfully");
+  } catch (error) {
+    console.log(`[DB] Failed to modify note. ${error}`);
+    res.sendStatus(400);
+  }
 });
 
 noteRouter.delete("/", async (req, res) => {

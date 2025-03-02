@@ -98,7 +98,7 @@ userRouter.post("/login", async (req, res) => {
       .cookie("sessionId", sessionCreated.sessionId, {
         secure: PRODUCTION,
         httpOnly: true,
-        sameSite: PRODUCTION ? "strict" : "lax",
+        sameSite: "strict",
         maxAge: SESSION_TIMEOUT_HOURS * 60 * 60 * 1000,
       })
       .sendStatus(200);
@@ -163,7 +163,7 @@ userRouter.post("/session", async (req, res) => {
       .cookie("sessionId", sessionData.sessionId, {
         secure: PRODUCTION,
         httpOnly: true,
-        sameSite: PRODUCTION ? "strict" : "lax",
+        sameSite: "strict",
         maxAge: SESSION_TIMEOUT_HOURS * 60 * 60 * 1000,
       })
       .sendStatus(200);

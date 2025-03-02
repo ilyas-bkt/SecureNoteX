@@ -1,5 +1,5 @@
 import RedCross from "../assets/Cross_red_circle.svg";
-import GreenCHeck from "../assets/Green-Checklist.png";
+import GreenCheck from "../assets/Green-Checklist.png";
 
 export const Notification: React.FC<{
   message: string;
@@ -18,7 +18,7 @@ export const Notification: React.FC<{
           className={`${colorClass[color]} bg-white fixed right-[0px] top-[90px] border-2 border-l-[10px] flex flex-row items-center min-h-[60px] w-[230px] gap-2 p-[4px]`}
         >
           <img
-            src={color == "red" ? RedCross : GreenCHeck}
+            src={color == "red" ? RedCross : GreenCheck}
             alt="Check logo"
             className="h-[40px] ml-2"
           />
