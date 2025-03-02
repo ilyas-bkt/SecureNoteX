@@ -18,6 +18,7 @@ const HTTP_PORT = Number(process.env["HTTP_PORT"]);
 const HTTPS_PORT = Number(process.env["HTTPS_PORT"]);
 const SSL_CERTIFICATE_DIR = String(process.env["SSL_CERTIFICATE_DIR"]);
 const PUBLIC_DIR = String(process.env["PUBLIC_DIR"]);
+export const PRODUCTION = Boolean(process.env["PRODUCTION"] == "true");
 export const SESSION_TIMEOUT_HOURS = Number(
   process.env["SESSION_TIMEOUT_HOURS"]
 );

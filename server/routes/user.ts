@@ -1,4 +1,4 @@
-import { SESSION_TIMEOUT_HOURS } from "./../server";
+import { PRODUCTION, SESSION_TIMEOUT_HOURS } from "./../server";
 import express from "express";
 import { db } from "../server";
 import argon2 from "argon2";
@@ -96,9 +96,9 @@ userRouter.post("/login", async (req, res) => {
     if (!sessionCreated) throw new Error("Failed to create session");
     res
       .cookie("sessionId", sessionCreated.sessionId, {
-        secure: false,
+        secure: PRODUCTION,
         httpOnly: true,
-        sameSite: "lax",
+        sameSite: PRODUCTION ? "strict" : "lax",
         maxAge: SESSION_TIMEOUT_HOURS * 60 * 60 * 1000,
       })
       .sendStatus(200);
@@ -117,7 +117,7 @@ userRouter.post("/logout", async (req, res) => {
       res.clearCookie("sessionId").sendStatus(200);
       return;
     }
-    
+
     const deletedSession = await db.session.delete({
       where: {
         sessionId: req.cookies.sessionId,
@@ -161,9 +161,9 @@ userRouter.post("/session", async (req, res) => {
 
     res
       .cookie("sessionId", sessionData.sessionId, {
+        secure: PRODUCTION,
         httpOnly: true,
-        secure: false,
-        sameSite: "lax",
+        sameSite: PRODUCTION ? "strict" : "lax",
         maxAge: SESSION_TIMEOUT_HOURS * 60 * 60 * 1000,
       })
       .sendStatus(200);

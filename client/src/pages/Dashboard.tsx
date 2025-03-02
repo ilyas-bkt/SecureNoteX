@@ -65,6 +65,28 @@ export default function Dashboard() {
     prefetchPage();
   }, [navigate]);
 
+  const formatDate = (dateTime: string) => {
+    const parsedDateTime = new Date(Date.parse(dateTime)).getTime();
+    const currentDateTime = new Date().getTime();
+    const timeDifference = currentDateTime - parsedDateTime;
+
+    const days = timeDifference / (24 * 60 * 60 * 1000);
+    const hours = timeDifference / (60 * 60 * 1000);
+    const minutes = timeDifference / (60 * 1000);
+
+    let timeAgo: { value: number; units: string };
+
+    if (hours < 1) timeAgo = { value: Math.trunc(minutes), units: "minutes" };
+    else if (days < 1) timeAgo = { value: Math.trunc(hours), units: "hours" };
+    else timeAgo = { value: Math.trunc(days), units: "days" };
+
+    return timeAgo.value
+      ? `${timeAgo.value} ${
+          timeAgo.value == 1 ? timeAgo.units.replace("s", " ") : timeAgo.units
+        } ago`
+      : "now";
+  };
+
   return pageLoading ? (
     <>Loading...</>
   ) : (
@@ -98,8 +120,8 @@ export default function Dashboard() {
                 <NotePreview
                   title={noteData.title}
                   description={noteData.description}
-                  modifiedAt={noteData.modifiedAt}
-                  createdAt={noteData.createdAt}
+                  modifiedAt={formatDate(noteData.modifiedAt)}
+                  createdAt={formatDate(noteData.createdAt)}
                   noteId={noteData.noteId}
                   componentId={`note-${index}`}
                   key={index}
