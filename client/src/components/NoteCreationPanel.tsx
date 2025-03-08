@@ -55,6 +55,8 @@ export const NoteCreationPanel: React.FC<{ createNote: boolean }> = ({
         show: true,
       });
       UpdateLocalStorage();
+      setTitle({ value: "", highlight: false });
+      setDescription({ value: "", highlight: false });
       dashboardContext.setCreateNote(false);
     } else {
       dashboardContext.setNotification({

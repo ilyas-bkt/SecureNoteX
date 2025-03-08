@@ -18,7 +18,7 @@ export const SingleForm: React.FC<{
   onChange,
 }) => {
   return (
-    <div className={`flex flex-col text-xl ${highlight ? "pb-2" : "pb-3"}`}>
+    <div className={`flex flex-col text-xl pb-3`}>
       <div className="flex flex-row justify-between items-end">
         {title}
         <span className="gap-3 font-['Roboto'] text-sm text-red-500 font-bold">
@@ -29,8 +29,10 @@ export const SingleForm: React.FC<{
         type={hideValue ? "password" : "text"}
         title={placeholder}
         placeholder={placeholder}
-        className={`bg-gray-200 font-['Roboto'] p-1 pr-2 pl-3 rounded-xl outline-none ${
-          highlight || errorMessage ? "border-2 border-red-600" : "border-none"
+        className={`bg-gray-200 font-['Roboto'] p-[4px] pr-[8px] pl-[12px] rounded-xl outline-none ${
+          highlight || errorMessage
+            ? "border-[2px] border-red-600"
+            : "border-[2px] border-gray-300 focus:border-gray-400"
         }`}
         value={value}
         onChange={onChange}

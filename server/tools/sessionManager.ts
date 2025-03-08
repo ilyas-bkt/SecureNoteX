@@ -1,9 +1,9 @@
 import { db } from "../server";
 
-export default async function verifySession(sessionId: string) {
+export const verifySession = async (sessionId: string) => {
   try {
     if (!sessionId || !sessionId.length) throw new Error();
-		
+
     const sessionFound = await db.session.findUnique({
       where: {
         sessionId: sessionId,
@@ -15,4 +15,4 @@ export default async function verifySession(sessionId: string) {
   } catch {
     throw new Error("Invalid session ID");
   }
-}
+};

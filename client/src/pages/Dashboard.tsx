@@ -64,7 +64,7 @@ export default function Dashboard() {
 
     prefetchPage();
   }, [navigate]);
-
+  
   return pageLoading ? (
     <>Loading...</>
   ) : (
@@ -90,7 +90,7 @@ export default function Dashboard() {
 
         <main
           id="main-container"
-          className="grid grid-cols-1 gap-[30px] h-full w-full p-[30px]"
+          className="grid gap-[30px] w-full p-[30px]"
         >
           {noteList.length ? (
             noteList.map((noteData, index) => {
@@ -102,7 +102,7 @@ export default function Dashboard() {
                   createdAt={noteData.createdAt}
                   noteId={noteData.noteId}
                   componentId={String(index)}
-                  key={index}
+                  key={noteData.noteId}
                 />
               );
             })

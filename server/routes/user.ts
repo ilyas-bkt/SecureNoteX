@@ -3,7 +3,7 @@ import express from "express";
 import { db } from "../server";
 import argon2 from "argon2";
 import { webcrypto } from "node:crypto";
-import verifySession from "../tools/verifySession";
+import { verifySession } from "../tools/sessionManager";
 
 export const userRouter = express.Router();
 
@@ -139,9 +139,11 @@ userRouter.post("/session", async (req, res) => {
     const sessionData = await verifySession(req.cookies.sessionId);
 
     if (sessionData.expireAt < new Date()) {
-      await db.session.delete({
+      await db.session.deleteMany({
         where: {
-          sessionId: sessionData.sessionId,
+          expireAt: {
+            lte: new Date(),
+          },
         },
       });
 

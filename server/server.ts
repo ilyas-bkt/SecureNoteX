@@ -12,6 +12,7 @@ import cors from "cors";
 
 import { userRouter } from "./routes/user";
 import { noteRouter } from "./routes/note";
+import { bodyRouter } from "./routes/body";
 
 dotenv.config();
 const HTTP_PORT = Number(process.env["HTTP_PORT"]);
@@ -60,6 +61,7 @@ server.use((req, _, next) => {
 // Routes
 server.use("/api/user", userRouter);
 server.use("/api/note", noteRouter);
+server.use("/api/note/body", bodyRouter);
 
 // Static files
 server.use(express.static(path.join(PUBLIC_DIR)));

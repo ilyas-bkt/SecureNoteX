@@ -39,4 +39,5 @@ model Note {
   description String
   modifiedAt  DateTime
   createdAt   DateTime
+  body        String   @db.MediumText()
 }

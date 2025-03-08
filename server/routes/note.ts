@@ -1,6 +1,6 @@
 import express from "express";
 import { db } from "../server";
-import verifySession from "../tools/verifySession";
+import { verifySession } from "../tools/sessionManager";
 
 export const noteRouter = express.Router();
 
@@ -39,6 +39,7 @@ noteRouter.post("/", async (req, res) => {
         description: req.body.description,
         createdAt: req.body.createdAt,
         modifiedAt: req.body.modifiedAt,
+        body: "",
       },
       select: {
         title: true,

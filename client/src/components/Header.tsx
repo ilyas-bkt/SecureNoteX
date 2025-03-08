@@ -22,7 +22,7 @@ export const Header: React.FC<{
           id="login-status-container"
           className="flex flex-row mr-2 gap-2 justify-center items-center"
         >
-          Welcome {firstName}, {lastName}
+          Connected as {firstName}, {lastName}
           <button
             id="disconnect-button"
             type="button"
