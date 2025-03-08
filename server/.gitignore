@@ -1,4 +1,7 @@
 node_modules
-.w*
-# Keep environment variables out of version control
 .env
+prisma/migrations/
+Dockerfile
+.dockerignore
+.well-known
+package-lock.json

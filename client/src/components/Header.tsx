@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import logo from "../assets/logo.jpg";
+import logo from "../assets/x.png";
 import { Disconnect } from "../tools/SessionManager";
 
 export const Header: React.FC<{
@@ -13,9 +13,13 @@ export const Header: React.FC<{
       id="header-container"
       className="z-20 flex flex-row sticky top-0 left-0 h-[60px] border-b w-full shadow-md justify-between text-2xl items-center bg-white"
     >
-      <div id="left-header-container" className="flex flex-row items-center">
+      <div
+        id="left-header-container"
+        className="flex flex-row items-center hover:cursor-pointer"
+        onClick={() => navigate("/")}
+      >
         <img src={logo} alt="logo" className="h-[40px] text-[30px]" />
-        Xako-Notes.inc
+        Secure Note X
       </div>
       {isLogin ? (
         <div
@@ -32,7 +36,7 @@ export const Header: React.FC<{
                 message: "Disconnected successfully!",
                 error: false,
               });
-              navigate("/login");
+              navigate("/");
             }}
           >
             Disconnect

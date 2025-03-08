@@ -8,12 +8,14 @@ import Register from "./pages/Register";
 import Error from "./pages/Error";
 import Dashboard from "./pages/Dashboard";
 import Note from "./pages/Note";
+import Home from "./pages/Home";
 
 export const API_SERVER_URL = String(import.meta.env["VITE_API_SERVER"]);
 
 const router = createBrowserRouter([
   {
     path: "/",
+    element: <Home />,
     errorElement: <Error />,
   },
   {

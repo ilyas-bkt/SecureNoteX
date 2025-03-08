@@ -20,7 +20,7 @@ export default function Login() {
     highlight: boolean;
     errorMessage?: string;
   });
-  const [notification, setNotifaction] = useState(
+  const [notification, setNotification] = useState(
     {} as {
       message?: string;
       color?: string;
@@ -39,7 +39,7 @@ export default function Login() {
     );
 
     if (disconnectStatus) {
-      setNotifaction({
+      setNotification({
         message: disconnectStatus.message,
         color: disconnectStatus.error ? "red" : "green",
         show: true,
@@ -49,7 +49,7 @@ export default function Login() {
     setTimeout(() => {
       sessionStorage.clear();
       localStorage.clear();
-      setNotifaction({
+      setNotification({
         show: false,
       });
     }, 4000);
@@ -81,12 +81,12 @@ export default function Login() {
           highlight: true,
           errorMessage: "Incorrect!",
         }));
-        setNotifaction({
+        setNotification({
           message: "Failed to connect!",
           color: "red",
           show: true,
         });
-        setTimeout(() => setNotifaction({ show: false }), 4000);
+        setTimeout(() => setNotification({ show: false }), 4000);
         setLoading(false);
       } else {
         navigate("/dashboard");
