@@ -6,6 +6,7 @@ import { DashboardContext } from "../tools/DashboardContext";
 import { UpdateLocalStorage } from "../tools/SessionManager";
 import { useNavigate } from "react-router-dom";
 import { Loader } from "./Loader";
+import { z } from "zod";
 
 export const NotePreview: React.FC<{
   title: string;
@@ -69,6 +70,38 @@ export const NotePreview: React.FC<{
       noteDescription == lastNoteData.description &&
       noteTitle == lastNoteData.title
     ) {
+      setLoader({ show: false });
+      return;
+    }
+    const userSchema = z.object({
+      title: z
+        .string()
+        .min(3, "At least 3 characters")
+        .max(30, "Too big")
+        .trim()
+        .regex(/^[a-zA-Z0-9\s]+$/, "No special characters"),
+      description: z
+        .string()
+        .min(3, "At least 3 characters")
+        .max(50, "Too big")
+        .trim()
+        .regex(/^[a-zA-Z0-9\s]+$/, "No special characters"),
+    });
+    const noteData = {
+      title: noteTitle,
+      description: noteDescription,
+    };
+
+    const result = userSchema.safeParse(noteData);
+    if (!result.success && result.error) {
+      setNoteTitle(lastNoteData.title);
+      setNoteDescription(lastNoteData.description);
+      dashboardContext.setNotification({
+        message: "Incorrect title or description!",
+        color: "red",
+        show: true,
+      });
+      setTimeout(() => dashboardContext.setNotification({ show: false }), 4000);
       setLoader({ show: false });
       return;
     }

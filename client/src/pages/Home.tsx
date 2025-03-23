@@ -42,7 +42,7 @@ export default function Home() {
         color={notification.color || ""}
         show={notification.show}
       />
-      <Header isLogin={false} />
+      <Header />
       <main className="w-full flex justify-center">
         <div className="w-full max-w-[1200px] h-[600px] flex flex-row justify-center items-center">
           <div className="flex flex-col justify-center min-w-[600px] gap-[5px]">

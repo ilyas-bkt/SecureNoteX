@@ -6,6 +6,7 @@ import { Notification } from "../components/Notification";
 import { IsSessionValid } from "../tools/SessionManager";
 import LoadingIMG from "../assets/colorful_loader.gif";
 import { API_SERVER_URL } from "../main";
+import { z } from "zod";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -58,16 +59,45 @@ export default function Login() {
   const handleLoginConnection = async () => {
     if (username.value.length && password.value.length) {
       setLoading(true);
+      const userSchema = z.object({
+        username: z
+          .string()
+          .min(2, "Wrong username")
+          .max(15, "Too big")
+          .trim()
+          .regex(/^[a-zA-Z0-9\s]+$/, "Wrong username"),
+        password: z.string().min(8, "Wrong password").max(15, "Too big").trim(),
+      });
+      const userData = {
+        username: username.value,
+        password: password.value,
+      };
+
+      const result = userSchema.safeParse(userData);
+      if (!result.success && result.error) {
+        const error = result.error.flatten().fieldErrors;
+        setUsername((username) => ({
+          value: username.value,
+          highlight: error.username ? true : false,
+          errorMessage: error.username ? error.username[0] : "",
+        }));
+        setPassword((password) => ({
+          value: password.value,
+          highlight: error.password ? true : false,
+          errorMessage: error.password ? error.password[0] : "",
+        }));
+
+        setLoading(false);
+        return;
+      }
+
       const response = await fetch(`${API_SERVER_URL}/api/user/login`, {
         method: "POST",
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          username: username.value,
-          password: password.value,
-        }),
+        body: JSON.stringify(userData),
       });
 
       if (!response.ok) {
@@ -120,7 +150,7 @@ export default function Login() {
         />
         <div
           id="left-container"
-          className="flex flex-col border-solid border-2 border-r-0 p-6 h-[330px]"
+          className="flex flex-col border-solid border-2 border-r-0 p-6 h-[330px] w-[310px]"
         >
           <div id="sub-title-container" className="pb-3 text-3xl underline">
             Login

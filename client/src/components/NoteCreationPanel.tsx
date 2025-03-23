@@ -3,6 +3,7 @@ import { SingleForm } from "./SingleForm";
 import { DashboardContext } from "../tools/DashboardContext";
 import { API_SERVER_URL } from "../main";
 import { UpdateLocalStorage } from "../tools/SessionManager";
+import { z } from "zod";
 
 export const NoteCreationPanel: React.FC<{ createNote: boolean }> = ({
   createNote,
@@ -10,6 +11,7 @@ export const NoteCreationPanel: React.FC<{ createNote: boolean }> = ({
   const [title, setTitle] = useState({ value: "", highlight: false } as {
     value: string;
     highlight: boolean;
+    errorMessage?: string;
   });
   const [description, setDescription] = useState({
     value: "",
@@ -17,6 +19,7 @@ export const NoteCreationPanel: React.FC<{ createNote: boolean }> = ({
   } as {
     value: string;
     highlight: boolean;
+    errorMessage?: string;
   });
   const dashboardContext = useContext(DashboardContext);
 
@@ -32,6 +35,49 @@ export const NoteCreationPanel: React.FC<{ createNote: boolean }> = ({
       }));
       return;
     }
+    const userSchema = z.object({
+      title: z
+        .string()
+        .min(3, "At least 3 characters")
+        .max(30, "Too big")
+        .trim()
+        .regex(/^[a-zA-Z0-9\s]+$/, "No special characters"),
+      description: z
+        .string()
+        .min(3, "At least 3 characters")
+        .max(50, "Too big")
+        .trim()
+        .regex(/^[a-zA-Z0-9\s]+$/, "No special characters"),
+    });
+    const noteData = {
+      title: title.value,
+      description: description.value,
+    };
+
+    const result = userSchema.safeParse(noteData);
+    if (!result.success && result.error) {
+      const error = result.error.flatten().fieldErrors;
+      setTitle((title) => ({
+        value: title.value,
+        highlight: error.title ? true : false,
+        errorMessage: error.title ? error.title[0] : "",
+      }));
+      setDescription((description) => ({
+        value: description.value,
+        highlight: error.description ? true : false,
+        errorMessage: error.description ? error.description[0] : "",
+      }));
+
+      dashboardContext.setNotification({
+        message: "Failed to create note!",
+        color: "red",
+        show: true,
+      });
+
+      setTimeout(() => dashboardContext.setNotification({ show: false }), 4000);
+      return;
+    }
+
     const response = await fetch(`${API_SERVER_URL}/api/note`, {
       method: "POST",
       credentials: "include",
@@ -84,6 +130,7 @@ export const NoteCreationPanel: React.FC<{ createNote: boolean }> = ({
           placeholder="Give your note a title"
           value={title.value}
           highlight={title.highlight}
+          errorMessage={title.errorMessage}
           onChange={(event) => {
             setTitle({
               value: event.target.value,
@@ -96,6 +143,7 @@ export const NoteCreationPanel: React.FC<{ createNote: boolean }> = ({
           placeholder="Give your note a quick description"
           value={description.value}
           highlight={description.highlight}
+          errorMessage={description.errorMessage}
           onChange={(event) => {
             setDescription({
               value: event.target.value,

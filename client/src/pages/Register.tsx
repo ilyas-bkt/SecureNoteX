@@ -5,6 +5,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { IsSessionValid } from "../tools/SessionManager";
 import { API_SERVER_URL } from "../main";
+import { z } from "zod";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -12,10 +13,12 @@ export default function Register() {
   const [firstname, setFirstname] = useState({ value: "" } as {
     value: string;
     highlight: boolean;
+    errorMessage?: string;
   });
   const [lastname, setLastname] = useState({ value: "" } as {
     value: string;
     highlight: boolean;
+    errorMessage?: string;
   });
   const [password, setPassword] = useState({ value: "" } as {
     value: string;
@@ -50,17 +53,70 @@ export default function Register() {
       firstname.value.length &&
       lastname.value.length
     ) {
+      const userSchema = z.object({
+        firstname: z
+          .string()
+          .min(2, "At least 2 characters")
+          .max(15, "Too big")
+          .trim()
+          .regex(/^[a-zA-Z0-9\s]+$/, "No special characters"),
+        lastname: z
+          .string()
+          .min(2, "At least 2 characters")
+          .max(15, "Too big")
+          .trim()
+          .regex(/^[a-zA-Z0-9\s]+$/, "No special characters"),
+        username: z
+          .string()
+          .min(5, "At least 5 characters")
+          .max(15, "Too big")
+          .trim()
+          .regex(/^[a-zA-Z0-9\s]+$/, "No special characters"),
+        password: z
+          .string()
+          .min(8, "At least 8 characters")
+          .max(15, "Too big")
+          .trim(),
+      });
+      const userData = {
+        username: username.value,
+        password: password.value,
+        firstname: firstname.value,
+        lastname: lastname.value,
+      };
+
+      const result = userSchema.safeParse(userData);
+      if (!result.success && result.error) {
+        const error = result.error.flatten().fieldErrors;
+        setFirstname((firstname) => ({
+          value: firstname.value,
+          highlight: error.firstname ? true : false,
+          errorMessage: error.firstname ? error.firstname[0] : "",
+        }));
+        setLastname((lastname) => ({
+          value: lastname.value,
+          highlight: error.lastname ? true : false,
+          errorMessage: error.lastname ? error.lastname[0] : "",
+        }));
+        setUsername((username) => ({
+          value: username.value,
+          highlight: error.username ? true : false,
+          errorMessage: error.username ? error.username[0] : "",
+        }));
+        setPassword((password) => ({
+          value: password.value,
+          highlight: error.password ? true : false,
+          errorMessage: error.password ? error.password[0] : "",
+        }));
+        return;
+      }
+
       const response = await fetch(`${API_SERVER_URL}/api/user/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          username: username.value,
-          password: password.value,
-          firstname: firstname.value,
-          lastname: lastname.value,
-        }),
+        body: JSON.stringify(userData),
       });
 
       if (response.status == 500) {
@@ -129,7 +185,7 @@ export default function Register() {
         />
         <div
           id="left-container"
-          className="flex flex-col border-solid border-2 border-r-0 p-6 h-[470px] w-[310px]"
+          className="flex flex-col border-solid border-2 border-r-0 p-6 h-[470px] w-[330px]"
         >
           <div id="sub-title-container" className="pb-3 text-3xl underline">
             Register
@@ -139,6 +195,7 @@ export default function Register() {
             title="First Name"
             value={firstname.value}
             highlight={firstname.highlight}
+            errorMessage={firstname.errorMessage}
             onChange={(event) => {
               setFirstname({
                 value: event.target.value,
@@ -151,6 +208,7 @@ export default function Register() {
             title="Last Name"
             value={lastname.value}
             highlight={lastname.highlight}
+            errorMessage={lastname.errorMessage}
             onChange={(event) => {
               setLastname({
                 value: event.target.value,
@@ -178,6 +236,7 @@ export default function Register() {
             value={password.value}
             highlight={password.highlight}
             hideValue={true}
+            errorMessage={password.errorMessage}
             onChange={(event) => {
               setPassword({
                 value: event.target.value,

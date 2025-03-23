@@ -1,16 +1,17 @@
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Header } from "../components/Header";
 import { useEffect, useState } from "react";
+import { API_SERVER_URL } from "../main";
+import { NoteContext } from "../tools/NoteContext";
+import { PrimeReactProvider } from "primereact/api";
+import { Editor } from "primereact/editor";
+import DOMPurify from "dompurify";
 import {
   Disconnect,
   IsSessionValid,
   LoadLocalStorage,
   UpdateLocalStorage,
 } from "../tools/SessionManager";
-import { API_SERVER_URL } from "../main";
-import { NoteContext } from "../tools/NoteContext";
-import { PrimeReactProvider } from "primereact/api";
-import { Editor } from "primereact/editor";
 
 const AUTO_SAVE_INTERVAL_MS = 2000;
 
@@ -118,7 +119,7 @@ export default function Note() {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              noteBody: noteBody,
+              noteBody: DOMPurify.sanitize(noteBody),
             }),
           }
         );
