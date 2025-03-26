@@ -1,0 +1,17 @@
+@media (max-width:450px) {
+    #note-status{
+        flex-direction: column;
+        align-items: start;
+    }
+    #note-status-right-container{
+        justify-content: space-between;
+        width: 100%;
+    }
+    #note-current-note{
+        width: 75%;
+    }
+    #note-exit-btn{
+        position: relative;
+        bottom: 10px;
+    }
+}

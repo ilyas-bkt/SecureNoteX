@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { IsSessionValid } from "../tools/SessionManager";
 import { API_SERVER_URL } from "../main";
 import { z } from "zod";
+import "../styles/Register.css"
 
 export default function Register() {
   const navigate = useNavigate();
@@ -172,8 +173,8 @@ export default function Register() {
     <>
       <Header />
       <main
-        id="main-container"
-        className="flex flex-row justify-center items-center h-[85vh] w-screen"
+        id="register-main-container"
+        className="flex flex-row justify-center items-center h-[calc(100vh-60px);] w-screen"
         onKeyDown={(event) =>
           event.key == "Enter" ? handleRegisterConnection() : ""
         }
@@ -255,7 +256,7 @@ export default function Register() {
         </div>
         <div
           id="right-container"
-          className="flex flex-col p-6 h-[470px] border border-l-0 bg-red-500 text-white justify-center items-center w-[350px]"
+          className="flex text-center flex-col p-6 h-[470px] border border-l-0 bg-red-500 text-white justify-center items-center w-full max-w-[350px]"
         >
           <div id="title-container" className="pb-3 text-2xl">
             Welcome to register
@@ -267,7 +268,7 @@ export default function Register() {
             to="/login"
             id="register-button"
             type="button"
-            className="border-2 rounded-2xl p-1 pr-2 pl-2 text-xl hover:bg-red-900 active:bg-black"
+            className="border-2 rounded-2xl p-1 pr-2 pl-2 text-xl hover:bg-red-900 active:bg-black w-full max-w-[130px]"
           >
             Login
           </Link>

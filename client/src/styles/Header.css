@@ -1,0 +1,8 @@
+@media (max-width:475px) {
+    #header-disconnect-button{
+        display: none;
+    }
+    #header-disconnect-image{
+        display: block;
+    }
+}

@@ -1,0 +1,12 @@
+@media (max-width: 735px) {
+  #home-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+  #login-button {
+    width: 100%;
+  }
+  #register-button {
+    width: 100%;
+  }
+}

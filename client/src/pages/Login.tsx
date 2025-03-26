@@ -7,6 +7,7 @@ import { IsSessionValid } from "../tools/SessionManager";
 import LoadingIMG from "../assets/colorful_loader.gif";
 import { API_SERVER_URL } from "../main";
 import { z } from "zod";
+import "../styles/Login.css"
 
 export default function Login() {
   const navigate = useNavigate();
@@ -137,8 +138,8 @@ export default function Login() {
     <>
       <Header />
       <main
-        id="main-container"
-        className="flex flex-row justify-center items-center h-[85vh] w-screen"
+        id="login-main-container"
+        className="flex flex-row justify-center items-center h-[calc(100vh-60px);] w-screen"
         onKeyDown={(event) =>
           event.key == "Enter" ? handleLoginConnection() : ""
         }
@@ -150,7 +151,7 @@ export default function Login() {
         />
         <div
           id="left-container"
-          className="flex flex-col border-solid border-2 border-r-0 p-6 h-[330px] w-[310px]"
+          className="flex flex-col border-gray-200 border-2 border-r-0 p-6 h-[330px] w-[310px]"
         >
           <div id="sub-title-container" className="pb-3 text-3xl underline">
             Login
@@ -206,7 +207,7 @@ export default function Login() {
         </div>
         <div
           id="right-container"
-          className="flex flex-col p-6 h-[330px] border border-l-0 bg-red-500 text-white justify-center items-center w-[330px]"
+          className="flex flex-col p-6 h-[330px] border border-l-0 bg-red-500 text-white justify-center items-center w-full max-w-[350px]"
         >
           <div id="title-container" className="pb-3 text-2xl">
             Welcome to login
@@ -218,7 +219,7 @@ export default function Login() {
             to={"/register"}
             id="register-button"
             type="button"
-            className="border-2 rounded-2xl p-1 pr-2 pl-2 text-xl hover:bg-red-900 active:bg-black"
+            className="border-2 rounded-2xl p-1 pr-2 pl-2 text-xl w-full max-w-[130px] text-center hover:bg-red-900 active:bg-black"
           >
             Register
           </Link>

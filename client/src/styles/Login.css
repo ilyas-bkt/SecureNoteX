@@ -1,0 +1,13 @@
+@media (max-width: 600px) {
+    #login-main-container{
+        flex-direction: column-reverse;
+    }
+    #left-container{
+        width: 100%;
+        max-width: 350px;
+        border-right: 2px #e5e7eb solid;
+    }
+    #right-container{
+        max-height: 300px;
+    }
+}
