@@ -1,6 +1,6 @@
 # Secure Note X
 
-Link : https://securenotex.ddns.net
+Link : https://securenotex.xako.net
 
 Secure Note X is a modern note-taking application with a focus on security and ease of use. This project uses a client-server architecture with a Node.js, Express and Prisma backend for database management, and a React frontend with TypeScript and TailwindCSS
 
